@@ -46,7 +46,7 @@ cea_setup.default <- function(cst, eff, intv,
   if (missing(cst_char)) cst_char <- "costs"
   if (missing(eff_char)) eff_char <- "effects"
   if (missing(intv_char)) intv_char <- "intervention"
-
+browser()
   # check for a vector supplied to covt
   # if a vector is supplied, it automattically is applied as the covariates
   #   for both costs and effects, regardless of whether or not vectors

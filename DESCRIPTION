@@ -1,6 +1,6 @@
-Package: ceatools
+Package: ceaR
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Cost-Effectiveness Analysis Tools for R
 Version: 0.0.0.9000
 Author@R: person("Justin", "Ingels", email = "ingels@uga.edu",
   role=c("aut","cre"))
@@ -10,6 +10,7 @@ Description: More about what it does (maybe more than one line)
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
-Imports: ggplot2
+Imports:
+    ggplot2 (>= 2.2),
     stringi
 RoxygenNote: 6.0.1
