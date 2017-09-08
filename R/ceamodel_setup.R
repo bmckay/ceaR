@@ -46,12 +46,12 @@ cea_setup.default <- function(cst, eff, intv,
   if (missing(cst_char)) cst_char <- "costs"
   if (missing(eff_char)) eff_char <- "effects"
   if (missing(intv_char)) intv_char <- "intervention"
-browser()
+
   # check for a vector supplied to covt
   # if a vector is supplied, it automattically is applied as the covariates
   #   for both costs and effects, regardless of whether or not vectors
   #   were passed to covt_cst or covt_eff
-  n_covt <- ncol(covt)
+  n_covt <- NCOL(covt)
   if (!is.null(covt)) {
     if (is.null(n_covt)) n_covt = 1
     covt_cst_data <- covt[, covt_cst]
@@ -157,12 +157,14 @@ cea_setup.data.frame <- function(cea_data=list(), cst_char, eff_char, intv_char,
                           covt_char_vec=c(), covt_cst=c(), covt_eff=c(),
                           eff_more_better=TRUE) {
 
-
   # If one or more cost covariates are provided, the names are saved and
   #   data passed to a vector/matirx from the dataframe
   if (!is.null(covt_cst)) {
     covt_cst_char <- covt_cst
     #covt_cst <- cea_data[, covt_char_vec[covt_cst]]
+  }
+  else {
+    covt_cst_char <- c()
   }
   # If one or more effect covariates are provided, the names are saved and
   #   data passed to a vector/matirx from the dataframe
@@ -170,14 +172,21 @@ cea_setup.data.frame <- function(cea_data=list(), cst_char, eff_char, intv_char,
     covt_eff_char <- covt_eff
     #covt_eff <- cea_data[, covt_char_vec[covt_eff]]
   }
+  else {
+    covt_eff_char <- c()
+  }
+  
+  covt_char_vec <- unique(c(covt_cst, covt_eff))
 
   # call the default function above
   ceamodel_local <- cea_setup.default(cst             = cea_data[, cst_char],
                                       eff             = cea_data[, eff_char],
                                       intv            = cea_data[, intv_char],
                                       covt            = cea_data[, covt_char_vec],
-                                      covt_cst        = covt_cst,
-                                      covt_eff        = covt_eff,
+                                      covt_cst        = which(covt_char_vec ==
+                                                                covt_cst_char),
+                                      covt_eff        = which(covt_char_vec ==
+                                                                covt_eff_char),
                                       eff_more_better = eff_more_better,
                                       cst_char        = cst_char,
                                       eff_char        = eff_char,
@@ -232,18 +241,24 @@ cea_setup.formula <- function(formula_cst=formula, formula_eff=formula,
   # check for the correspondence in intervention variables between equations
   #   and check for covariates
   cst_char_vec <- strsplit(formula_cst_char[3], "+", fixed=TRUE)
-  int_cst_char <- stringi::stri_trim_both(cst_char_vec[[1]][1])
+  tmp_cst <- as.character(cst_char_vec[[1]])
+  #int_cst_char <- stringi::stri_trim_both(cst_char_vec[[1]][1])
+  int_cst_char <- stringi::stri_trim_both(tmp_cst[1])
   if (length(cst_char_vec[[1]]) > 1) {
-    cov_cst_vec <- stringi::stri_trim_both(cst_char_vec[[1]][2:length(cst_char_vec[[1]])])
+    #cov_cst_vec <- stringi::stri_trim_both(cst_char_vec[[1]][2:length(cst_char_vec[[1]])])
+    cov_cst_vec <- stringi::stri_trim_both(tmp_cst[2:length(cst_char_vec[[1]])])
   } else {
     cov_cst_vec <- c()
   }
 
   # find covariates
   eff_char_vec <- strsplit(formula_eff_char[3], "+", fixed=TRUE)
-  int_eff_char <- stringi::stri_trim_both(eff_char_vec[[1]][1])
+  tmp_eff <- as.character(eff_char_vec[[1]])
+  #int_eff_char <- stringi::stri_trim_both(eff_char_vec[[1]][1])
+  int_eff_char <- stringi::stri_trim_both(tmp_eff[1])
   if (length(eff_char_vec[[1]]) > 1) {
-    cov_eff_vec <- stringi::stri_trim_both(eff_char_vec[[1]][2:length(eff_char_vec[[1]])])
+    #cov_eff_vec <- stringi::stri_trim_both(eff_char_vec[[1]][2:length(eff_char_vec[[1]])])
+    cov_eff_vec <- stringi::stri_trim_both(tmp_eff[2:length(eff_char_vec[[1]])])
   } else {
     cov_eff_vec <- c()
   }
@@ -255,8 +270,6 @@ cea_setup.formula <- function(formula_cst=formula, formula_eff=formula,
     int_char <- int_cst_char
   }
 
-  # TODO Need to compare covariance lists to ensure this does not
-  #   double variables and ensure cost covariates make it as well
   covt_char_vec <- unique(c(cov_eff_vec, cov_cst_vec))
   var_char_vec <- c(cst_char, eff_char, int_char, covt_char_vec)
 

@@ -12,5 +12,5 @@ Encoding: UTF-8
 LazyData: true
 Imports:
     ggplot2 (>= 2.2),
-    stringi
+    stringi (>= 0.4)
 RoxygenNote: 6.0.1
