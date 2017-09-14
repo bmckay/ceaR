@@ -1,4 +1,11 @@
-#' Create a ceamodel class object
+#' Create a ceamodel class object.
+#' 
+#' \code{cea_setup} creates a ceamodel class object that specifies cost and
+#' effect data as well as intervention specifiers for a list of individual 
+#' entities. The model may also specify covariate values to be used in 
+#' estimating incremental costs and effects.
+#' 
+#' @param x May be a formula, data frame, or vector of data values.
 #'
 #' @return An object of class ceamodel.
 
@@ -175,7 +182,7 @@ cea_setup.data.frame <- function(cea_data=list(), cst_char, eff_char, intv_char,
   else {
     covt_eff_char <- c()
   }
-  
+
   covt_char_vec <- unique(c(covt_cst, covt_eff))
 
   # call the default function above
@@ -222,8 +229,8 @@ cea_setup.formula <- function(formula_cst=formula, formula_eff=formula,
                               cea_data=list(), eff_more_better = TRUE) {
 
   # convert formulas to character vectors for parsing
-  formula_cst_char <- as.character(formula_cst)
-  formula_eff_char <- as.character(formula_eff)
+  # formula_cst_char <- as.character(formula_cst)
+  # formula_eff_char <- as.character(formula_eff)
   if (formula_cst_char[1] != "~") {
     # this actually fails at the point of entering the formula
     stop(paste("Formula does not inlcude a ~ character distinguishing costs and
@@ -236,17 +243,21 @@ cea_setup.formula <- function(formula_cst=formula, formula_eff=formula,
   }
 
   # the first part of the formula shows up in the second position of the vector
-  cst_char <- stringi::stri_trim_both(formula_cst_char[2])
-  eff_char <- stringi::stri_trim_both(formula_eff_char[2])
+  # cst_char <- stringi::stri_trim_both(formula_cst_char[2])
+  # eff_char <- stringi::stri_trim_both(formula_eff_char[2])
+  cst_char <- trimws(formula_cst_char[2])
+  eff_char <- trimws(formula_eff_char[2])
   # check for the correspondence in intervention variables between equations
   #   and check for covariates
   cst_char_vec <- strsplit(formula_cst_char[3], "+", fixed=TRUE)
   tmp_cst <- as.character(cst_char_vec[[1]])
   #int_cst_char <- stringi::stri_trim_both(cst_char_vec[[1]][1])
-  int_cst_char <- stringi::stri_trim_both(tmp_cst[1])
+  # int_cst_char <- stringi::stri_trim_both(tmp_cst[1])
+  int_cst_char <- trimws(tmp_cst[1])
   if (length(cst_char_vec[[1]]) > 1) {
     #cov_cst_vec <- stringi::stri_trim_both(cst_char_vec[[1]][2:length(cst_char_vec[[1]])])
-    cov_cst_vec <- stringi::stri_trim_both(tmp_cst[2:length(cst_char_vec[[1]])])
+    # cov_cst_vec <- stringi::stri_trim_both(tmp_cst[2:length(cst_char_vec[[1]])])
+    cov_cst_vec <- trimws(tmp_cst[2:length(cst_char_vec[[1]])])
   } else {
     cov_cst_vec <- c()
   }
@@ -255,10 +266,12 @@ cea_setup.formula <- function(formula_cst=formula, formula_eff=formula,
   eff_char_vec <- strsplit(formula_eff_char[3], "+", fixed=TRUE)
   tmp_eff <- as.character(eff_char_vec[[1]])
   #int_eff_char <- stringi::stri_trim_both(eff_char_vec[[1]][1])
-  int_eff_char <- stringi::stri_trim_both(tmp_eff[1])
+  # int_eff_char <- stringi::stri_trim_both(tmp_eff[1])
+  int_eff_char <- trimws(tmp_eff[1])
   if (length(eff_char_vec[[1]]) > 1) {
     #cov_eff_vec <- stringi::stri_trim_both(eff_char_vec[[1]][2:length(eff_char_vec[[1]])])
-    cov_eff_vec <- stringi::stri_trim_both(tmp_eff[2:length(eff_char_vec[[1]])])
+    # cov_eff_vec <- stringi::stri_trim_both(tmp_eff[2:length(eff_char_vec[[1]])])
+    cov_eff_vec <- trimws(tmp_eff[2:length(eff_char_vec[[1]])])
   } else {
     cov_eff_vec <- c()
   }
