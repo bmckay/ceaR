@@ -14,7 +14,6 @@
 #'   will be by increasing average effect.
 #' @param table_print If true, the ICER table will be printed to the Console.
 #'   If false, priting of the ICER table to the Console will be suppressed.
-#' 
 #' @return Here
 
 create_icer_table <- function(cst_vec, eff_vec, intv_names,

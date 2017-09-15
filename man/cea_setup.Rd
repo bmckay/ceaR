@@ -2,19 +2,89 @@
 % Please edit documentation in R/ceamodel_setup.R
 \name{cea_setup}
 \alias{cea_setup}
+\alias{cea_setup.default}
+\alias{cea_setup.data.frame}
+\alias{cea_setup.formula}
 \title{Create a ceamodel class object.}
 \usage{
 cea_setup(x, ...)
+
+\method{cea_setup}{default}(cst, eff, intv, covt = c(), covt_cst = c(),
+  covt_eff = c(), eff_more_better = TRUE, cst_char, eff_char, intv_char,
+  covt_char)
+
+\method{cea_setup}{data.frame}(cea_data = list(), cst_char, eff_char,
+  intv_char, covt_char_vec = c(), covt_cst = c(), covt_eff = c(),
+  eff_more_better = TRUE)
+
+\method{cea_setup}{formula}(formula_cst = formula, formula_eff = formula,
+  cea_data = list(), eff_more_better = TRUE)
 }
 \arguments{
-\item{x}{May be a formula, data frame, or vector of data values.}
+\item{x}{an R object.}
+
+\item{cst}{A vector of cost values.}
+
+\item{eff}{A vector of effect values.}
+
+\item{intv}{A vector of intervention or program assignment/membership.
+cst, eff, and intv must have the same length, greater than one.}
+
+\item{covt}{If provided, a vector (or matrix) of covariate values. covt must
+have the same number of rows as cst and eff. The number of columns
+is equal to the number of unique covariates.}
+
+\item{covt_cst}{If provided, a vector of integers. The integers correspond
+to column numbers of covt for which the covariates will be used for
+costs.}
+
+\item{covt_eff}{If provided, a vector of integers. The integers correspond
+to column numbers of covt for which the covariates will be used for
+effects.}
+
+\item{eff_more_better}{If TRUE, a greater value for effects indicates a
+better outcome. If FALSE, a smaller value for effects
+indicates a better outcome. Default is TRUE.}
+
+\item{cst_char}{A character string representing the preferred name of the
+cost variable (values in cst).}
+
+\item{eff_char}{A character string representing the preferred name of the
+effect variable (values in eff).}
+
+\item{intv_char}{A character string representing the preferred name of the
+intervention variable (values in intv).}
+
+\item{covt_char}{A character string (or vector of character strings)
+representing the preferred name of the covariate
+variables. The number of strings provided should equal
+the number of columns in covt.}
 }
 \value{
-An object of class ceamodel.
+An object of class "ceamodel".
 }
 \description{
-\code{cea_setup} creates a ceamodel class object that specifies cost and
+Creates a ceamodel class object that specifies cost and
 effect data as well as intervention specifiers for a list of individual 
 entities. The model may also specify covariate values to be used in 
 estimating incremental costs and effects.
+}
+\section{Methods (by class)}{
+\itemize{
+\item \code{default}: Default S3 method
+
+\item \code{data.frame}: S3 method for class 'data.frame'
+
+\item \code{formula}: S3 method for class 'formula'
+}}
+
+\examples{
+## Data Frame examples: basic, male as covariate
+ceamodel <- cea_setup(clintrial_cea, "cost", "qaly", "treat")
+ceamodel <- cea_setup(clintrial_cea, "cost", "qaly", "treat", "male")
+
+## Formulas examples: basic, male as covariate
+ceamodel <- cea_setup(cost ~ treat, qaly ~ treat, clintrial_cea)
+ceamodel <- cea_setup(cost ~ treat + male, qaly ~ treat + male, 
+                      cea_data = clintrial_cea)
 }

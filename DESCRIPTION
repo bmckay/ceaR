@@ -13,3 +13,6 @@ LazyData: true
 Imports:
     ggplot2 (>= 2.2)
 RoxygenNote: 6.0.1
+Suggests: knitr,
+    rmarkdown
+VignetteBuilder: knitr

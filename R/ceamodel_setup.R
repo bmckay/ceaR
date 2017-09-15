@@ -1,18 +1,23 @@
 #' Create a ceamodel class object.
 #' 
-#' \code{cea_setup} creates a ceamodel class object that specifies cost and
+#' Creates a ceamodel class object that specifies cost and
 #' effect data as well as intervention specifiers for a list of individual 
 #' entities. The model may also specify covariate values to be used in 
 #' estimating incremental costs and effects.
 #' 
-#' @param x May be a formula, data frame, or vector of data values.
-#'
-#' @return An object of class ceamodel.
-
+#' @param x an R object.
+#' @return An object of class "ceamodel".
+#' @examples 
+#' ## Data Frame examples: basic, male as covariate
+#' ceamodel <- cea_setup(clintrial_cea, "cost", "qaly", "treat")
+#' ceamodel <- cea_setup(clintrial_cea, "cost", "qaly", "treat", "male")
+#' 
+#' ## Formulas examples: basic, male as covariate
+#' ceamodel <- cea_setup(cost ~ treat, qaly ~ treat, clintrial_cea)
+#' ceamodel <- cea_setup(cost ~ treat + male, qaly ~ treat + male, 
+#'                       cea_data = clintrial_cea)
 cea_setup <- function(x, ...) UseMethod("cea_setup")
 
-#' Create a ceamodel class object
-#'
 #' @param cst A vector of cost values.
 #' @param eff A vector of effect values.
 #' @param intv A vector of intervention or program assignment/membership.
@@ -39,10 +44,7 @@ cea_setup <- function(x, ...) UseMethod("cea_setup")
 #'                  representing the preferred name of the covariate
 #'                  variables. The number of strings provided should equal
 #'                  the number of columns in covt.
-
-#' @return An object of class ceamodel.
-
-
+#' @describeIn cea_setup Default S3 method
 cea_setup.default <- function(cst, eff, intv,
                               covt = c(), covt_cst = c(), covt_eff = c(),
                               eff_more_better = TRUE, cst_char, eff_char,
@@ -135,31 +137,7 @@ cea_setup.default <- function(cst, eff, intv,
 
 }
 
-#' Create a ceamodel class object
-#'
-#' @param cea_data A dataframe containing all of the data for the ceamodel.
-#' @param cst_char A character string representing the name of the cost
-#'             variable (values in cst). cst_char must be the name of a column
-#'             in the dataframe.
-#' @param eff_char A character string representing the name of the effect
-#'             variable (values in eff). eff_char must be the name of a column
-#'             in the dataframe
-#' @param intv_char A character string representing the preferred name of the
-#'              intervention variable (values in intv). intv_char must be the
-#'              name of a column in the dataframe
-#' @param covt If provided, a vector of covariate names. Name(s) in covt must
-#'             be columns in the dataframe.
-#' @param covt_cst If provided, a vector of integers. The integers correspond
-#'         to column numbers of covt for which the covariates will be used for
-#'         costs.
-#' @param covt_eff If provided, a vector of integers. The integers correspond
-#'         to column numbers of covt for which the covariates will be used for
-#'         effects.
-#' @param eff_more_better If TRUE, a greater value for effects indicates a better
-#'                    outcome. If FALSE, a smaller value for effects indicates
-#'                    a better outcome. Default is TRUE.
-#' @return An object of class ceamodel.
-
+#' @describeIn cea_setup S3 method for class 'data.frame'
 cea_setup.data.frame <- function(cea_data=list(), cst_char, eff_char, intv_char,
                           covt_char_vec=c(), covt_cst=c(), covt_eff=c(),
                           eff_more_better=TRUE) {
@@ -202,29 +180,7 @@ cea_setup.data.frame <- function(cea_data=list(), cst_char, eff_char, intv_char,
 
 }
 
-#' Create a ceamodel class object
-#'
-#' @param cea_data A dataframe containing all of the data for the ceamodel.
-#' @param cst_char A character string representing the name of the cost
-#'             variable (values in cst). cst_char must be the name of a column
-#'             in the dataframe.
-#' @param eff_char A character string representing the name of the effect
-#'             variable (values in eff). eff_char must be the name of a column
-#'             in the dataframe
-#' @param intv_char A character string representing the preferred name of the
-#'              intervention variable (values in intv). intv_char must be the
-#'              name of a column in the dataframe
-#' @param covt If provided, a vector of covariate names. Name(s) in covt must
-#'             be columns in the dataframe.
-#' @param covt_cst If provided, a vector of cost covariate names. Name(s) in
-#'             covt_cst must be columns in the dataframe.
-#' @param covt_eff If provided, a vector of effect covariate values. Name(s) in
-#'             covt_eff must be columns in the dataframe.
-#' @param eff_more_better If TRUE, a greater value for effects indicates a better
-#'                    outcome. If FALSE, a smaller value for effects indicates
-#'                    a better outcome. Default is TRUE.
-#' @return An object of class ceamodel.
-
+#' @describeIn cea_setup S3 method for class 'formula'
 cea_setup.formula <- function(formula_cst=formula, formula_eff=formula,
                               cea_data=list(), eff_more_better = TRUE) {
 
@@ -301,3 +257,4 @@ cea_setup.formula <- function(formula_cst=formula, formula_eff=formula,
                                       intv_char       = int_char,
                                       covt_char       = covt_char_vec)
 }
+
