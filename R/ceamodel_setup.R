@@ -16,6 +16,7 @@
 #' ceamodel <- cea_setup(cost ~ treat, qaly ~ treat, clintrial_cea)
 #' ceamodel <- cea_setup(cost ~ treat + male, qaly ~ treat + male, 
 #'                       cea_data = clintrial_cea)
+#' @export
 cea_setup <- function(x, ...) UseMethod("cea_setup")
 
 #' @param cst A vector of cost values.
@@ -45,6 +46,7 @@ cea_setup <- function(x, ...) UseMethod("cea_setup")
 #'                  variables. The number of strings provided should equal
 #'                  the number of columns in covt.
 #' @describeIn cea_setup Default S3 method
+#' @export
 cea_setup.default <- function(cst, eff, intv,
                               covt = c(), covt_cst = c(), covt_eff = c(),
                               eff_more_better = TRUE, cst_char, eff_char,
@@ -138,6 +140,7 @@ cea_setup.default <- function(cst, eff, intv,
 }
 
 #' @describeIn cea_setup S3 method for class 'data.frame'
+#' @export
 cea_setup.data.frame <- function(cea_data=list(), cst_char, eff_char, intv_char,
                           covt_char_vec=c(), covt_cst=c(), covt_eff=c(),
                           eff_more_better=TRUE) {
@@ -181,12 +184,13 @@ cea_setup.data.frame <- function(cea_data=list(), cst_char, eff_char, intv_char,
 }
 
 #' @describeIn cea_setup S3 method for class 'formula'
+#' @export
 cea_setup.formula <- function(formula_cst=formula, formula_eff=formula,
                               cea_data=list(), eff_more_better = TRUE) {
 
   # convert formulas to character vectors for parsing
-  # formula_cst_char <- as.character(formula_cst)
-  # formula_eff_char <- as.character(formula_eff)
+  formula_cst_char <- as.character(formula_cst)
+  formula_eff_char <- as.character(formula_eff)
   if (formula_cst_char[1] != "~") {
     # this actually fails at the point of entering the formula
     stop(paste("Formula does not inlcude a ~ character distinguishing costs and

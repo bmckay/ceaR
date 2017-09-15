@@ -1,16 +1,19 @@
-#' Convert basic incremental analyses using a ceamodel object and setup more
+#' Conduct basic incremental analyses using a ceamodel object and setup more
 #' advanced incremental analyses.
 #' 
 #' @param cea_lst A ceamodel object created using a ceamodel_setup function.
 #' @param cost_order If true, the order of options in an ICER table will be by 
-#'   increasing average cost. If false, the order of options in an ICER table
-#'   will be by increasing average effect.
+#' increasing average cost. If false, the order of options in an ICER table
+#' will be by increasing average effect.
 #' @param table_print If true, the ICER table will be printed. If false, the
-#'   ICER table will not be printed.
-#'   
+#' ICER table will not be printed.
 #' @return An object of class ceamodel, with incremental analyses added to the
-#'   model
-
+#' model
+#' @examples 
+#' ## Run an incremental analysis
+#' ceamodel <- cea_setup(cost ~ treat, qaly ~ treat, clintrial_cea)
+#' ceamodel <- ceamodel_incremental(ceamodel)
+#' @export
 ceamodel_incremental <- function(cea_lst = list(), cost_order = TRUE,
                                  table_print = TRUE) {
 

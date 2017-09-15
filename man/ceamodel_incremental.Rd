@@ -2,7 +2,7 @@
 % Please edit documentation in R/ceamodel_incremental.R
 \name{ceamodel_incremental}
 \alias{ceamodel_incremental}
-\title{Convert basic incremental analyses using a ceamodel object and setup more
+\title{Conduct basic incremental analyses using a ceamodel object and setup more
 advanced incremental analyses.}
 \usage{
 ceamodel_incremental(cea_lst = list(), cost_order = TRUE,
@@ -20,9 +20,14 @@ ICER table will not be printed.}
 }
 \value{
 An object of class ceamodel, with incremental analyses added to the
-  model
+model
 }
 \description{
-Convert basic incremental analyses using a ceamodel object and setup more
+Conduct basic incremental analyses using a ceamodel object and setup more
 advanced incremental analyses.
+}
+\examples{
+## Run an incremental analysis
+ceamodel <- cea_setup(cost ~ treat, qaly ~ treat, clintrial_cea)
+ceamodel <- ceamodel_incremental(ceamodel)
 }

@@ -9,50 +9,48 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-Vignettes are long form documentation commonly included in packages. Because they are part of the distribution of the package, they need to be as compact as possible. The `html_vignette` output type provides a custom style sheet (and tweaks some options) to ensure that the resulting html is as small as possible. The `html_vignette` format:
+The package ceaR is designed to facilitate cost-effectiveness analyses of 
+individual-level data. In most cases, the interested user will have a dataset
+of individuals that fall into one of two (or more) treatment or intervention
+conditions. At a minimum, each individual should have a cost, effect, and an
+indicator of the intervention or condition of which he or she is a member.
+There may also be one or more covariate values for each individual including
+baseline costs or effects, demographic, environmental, or disease-specific 
+factors.
 
-- Never uses retina figures
-- Has a smaller default figure size
-- Uses a custom CSS stylesheet instead of the default Twitter Bootstrap style
+## Setup
+The cea_setup function is used to define the variables representing costs, 
+effects, and intervention condition as well as any covariate variables that
+should be included in analyses and whether these covariates are applied to 
+both the cost and effect analyses or just one or the other. Further, an
+optional setting eff_more_better can be set to False in cases where more of
+the effect is not a better outcome for an individual. An example would be if
+the effect is a binary variable where a 1 represents death or disease.
 
-## Vignette Info
+As an example, the dataset clintrial_cea will be used... The formula method can
+be used where the baseline costs (blcost) and QALYs (blqaly) will be covariates
+with cost and qaly, respectively.
 
-Note the various macros within the `vignette` section of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette.
-
-## Styles
-
-The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
-
-    output: 
-      rmarkdown::html_vignette:
-        css: mystyles.css
-
-## Figures
-
-The figure sizes have been customised so that you can easily put two images side-by-side. 
-
-```{r, fig.show='hold'}
-plot(1:10)
-plot(10:1)
+```{r}
+testmodel <- cea_setup(cost ~ treat + blcost, qaly ~ treat + blqaly, clintrial_cea)
 ```
 
-You can enable figure captions by `fig_caption: yes` in YAML:
+The object testmodel is of class ceamodel and includes a data frame including
+only the variables from clintrial_cea including in the function call. There are
+also references to the cost, effect, intervention, and covariate variables; cost
+and effect formulas, and the number of individuals in the dataset.
 
-    output:
-      rmarkdown::html_vignette:
-        fig_caption: yes
+## Incremental CEA
+To conduct an incremental cost-effectiveness analysis, the next step is to pass
+the testmodel object to the ceamodel_incremental function. This function will
+estimate delta_e and delta_c between conditions. The analyses are conducted
+based on a regression model for both costs and effects. When covariates are
+not included in the model, the results are equivalent to taking the differences
+in the mean costs (and effects) by condition across individuals in the sample.
+The results of this analysis are attached to the object of class ceamodel that
+is passed to the function.
 
-Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
-
-## More Examples
-
-You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
-
-```{r, echo=FALSE, results='asis'}
-knitr::kable(head(mtcars, 10))
+```{r}
+testmodel <- ceamodel_incremental(testmodel)
 ```
 
-Also a quote using `>`:
-
-> "He who gives up [code] safety for [code] speed deserves neither."
-([via](https://twitter.com/hadleywickham/status/504368538874703872))
