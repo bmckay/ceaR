@@ -21,3 +21,23 @@
 #' }
 #' @source \url{http://www.uphs.upenn.edu/dgimhsr/eeinct_multiv.htm}
 "clintrial_cea"
+
+#' Example CEA colorectal cancer screening
+#' 
+#' A dataset that includes costs and life-years gained at the intervnetion level
+#' (i.e. not individual level data) that can be used to conduct simple CEAs.
+#' This dataset is provided in the text
+#' "Applied Methods of Cost-effectiveness Analysis" by Gray, Clarke, 
+#' Wolstenholme, and Wordsowrth. Oxford University Press, 2011. The data is
+#' based on the study Gyrd-Hansen, D. (1997). "Is it cost effective to introduce
+#' screening programmes for colorectal cancer? Illustrating the principles
+#' of optimal resource allocation. Health Policy, 41, 189-199.
+#' 
+#' @format A data frame with 6 rows and 4 variables:
+#' \describe{
+#'   \item{ID}{unique id for each screening option}
+#'   \item{Program}{textual description of each screening option}
+#'   \item{cost}{total cost, in pounds}
+#'   \item{qaly}{life-years gained}
+#' }
+"clintrial_cea"

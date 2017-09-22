@@ -5,6 +5,8 @@
 #' two conditions of interest with intv1 and intv2.
 #' 
 #' @param cea_lst A ceamodel class object created using a ceamodel_setup function.
+#' If a ceaicer object is not included (from ceamodel_incremental), this will
+#' be run first before an analysis of the ICER.
 #' @param intv1 Reference to one of the conditions specified in the intervention
 #' variable of cea_lst
 #' @param intv1 Reference to one of the conditions specified in the intervention
@@ -19,11 +21,25 @@
 icer_analysis <- function(cea_lst=list(), intv1, intv2, fieller_plot=FALSE,
                           inb=FALSE, boot=FALSE, ci_level=95) {
 
-  
+  # Check for a ceamodel object be passed as cea_lst, stop execution if not
+  if (!class(cea_lst) == "ceamodel") {
+    stop(paste("The object passed as cea_lst is not a ceamodel object."))
+  }
+  # Next check for the object incremental in cea_lst, if this does not exist
+  # run cea_incremental first
+  if (!("incremental" %in% names(cea_lst))) {
+    cea_lst <- ceamodel_incremental(cea_lst, table_print = FALSE)
+  }
   
   # Goal here is to create an incremental analysis for specified intervention 
-  # variables, specified by intv1 and intv2
+  # variables, those specified by intv1 and intv2
+  # Check to see if these intervention values exist in the dataset, quit if not
   cea_alt_lst <- cea_lst
+  if (!(intv1 %in% cea_lst$incremental$intv_vec) | 
+      !(intv2 %in% cea_lst$incremental$intv_vec))
+  {
+    stop(paste("The value specified in either intv1 or intv2 does not exist."))
+  }
   cea_alt_lst$incremental$intv1 <- intv1
   cea_alt_lst$incremental$intv2 <- intv2
 
@@ -133,7 +149,7 @@ icer_analysis <- function(cea_lst=list(), intv1, intv2, fieller_plot=FALSE,
                     inc_cst=cea_alt_lst$incremental$inc_cst)
   }
 
-
+  # TODO: what steps to take if inb or boot are set to TRUE
   # if(inb) {
   #   cea_alt_lst$incremental$sureg$inc.cea$inc.inb = run.inb(cea_alt_lst, intv1, intv2)
   # }
