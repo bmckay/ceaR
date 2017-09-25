@@ -62,11 +62,15 @@ cea_setup.default <- function(cst, eff, intv,
   # if a vector is supplied, it automattically is applied as the covariates
   #   for both costs and effects, regardless of whether or not vectors
   #   were passed to covt_cst or covt_eff
+
   n_covt <- NCOL(covt)
   if (!is.null(covt)) {
     if (is.null(n_covt)) n_covt = 1
+    if (n_covt == 1) covt <- data.frame(covt)
     covt_cst_data <- covt[, covt_cst]
+    covt_cst_char <- covt_char[covt_cst]
     covt_eff_data <- covt[, covt_eff]
+    covt_eff_char <- covt_char[covt_eff]
     if (is.null(covt_char)) {
       covt_char <- rep("", n_covt)
       for (i in 1:n_covt) {
@@ -90,6 +94,8 @@ cea_setup.default <- function(cst, eff, intv,
              eff_char        = eff_char,
              intv_char       = intv_char,
              covt_char       = covt_char,
+             covt_cst_char   = covt_cst_char,
+             covt_eff_char   = covt_eff_char,
              eff_more_better = eff_more_better)
 
   # a formula is created for both costs and effects based on variable names

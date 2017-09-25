@@ -18,8 +18,9 @@
 #' @param ci_level, Percent level for the confidence interval, default at 95%
 #' confidence interval.
 #' @export
-icer_analysis <- function(cea_lst=list(), intv1, intv2, fieller_plot=FALSE,
-                          inb=FALSE, boot=FALSE, ci_level=95) {
+icer_analysis <- function(cea_lst=list(), intv1, intv2, fieller_plot = FALSE,
+                          pvalues = FALSE, inb = FALSE, boot = FALSE, 
+                          ci_level=95) {
 
   # Check for a ceamodel object be passed as cea_lst, stop execution if not
   if (!class(cea_lst) == "ceamodel") {
@@ -90,8 +91,8 @@ icer_analysis <- function(cea_lst=list(), intv1, intv2, fieller_plot=FALSE,
           cea_alt_lst$incremental$sureg$coef[(cea_alt_lst$incremental$N_intv_vec + 1):
                                             (cea_alt_lst$incremental$N_intv_vec +
                                               cea_alt_lst$incremental$sureg$n_covt_eff)])
-  #### left off here, trying to make sure this call to the icer table is correct
-  intv_names <- paste(cea_alt_lst$intv_char, cea_alt_lst$incremental$intv_vec, sep="")
+
+    intv_names <- paste(cea_alt_lst$intv_char, cea_alt_lst$incremental$intv_vec, sep="")
   icer_table <- create_icer_table(cst_vec, eff_vec, intv_names,
                                   cea_alt_lst$eff_more_better,
                                   cea_alt_lst$incremental$cost_order,
@@ -129,10 +130,25 @@ icer_analysis <- function(cea_lst=list(), intv1, intv2, fieller_plot=FALSE,
   cea_alt_lst$incremental$icer_ci_fieller <-
     cea_alt_lst$incremental$icer * c(lower.tmp, upper.tmp)
 
+  if (pvalues) {
+    cea_alt_lst$incremental$inc_cst_pval <- 2 * pt(-1 * 
+      abs(cea_alt_lst$incremental$inc_cst /
+        sqrt(cea_alt_lst$incremental$var_inc_cst)), df = cea_alt_lst$N_total - 1)
+    cea_alt_lst$incremental$inc_eff_pval <- 2 * pt(-1 * 
+      abs(cea_alt_lst$incremental$inc_eff /
+        sqrt(cea_alt_lst$incremental$var_inc_eff)), df = cea_alt_lst$N_total - 1)
+  }
+  
   # Add note about negative values and interpretation
   writeLines(paste("\nICER for", cea_alt_lst$incremental$intv1,
                    "vs.", cea_alt_lst$incremental$intv2, "=",
                    round(cea_alt_lst$incremental$icer, 2), "\n"))
+  if (pvalues) {
+    writeLines(paste("\nP-value for cost coefficient = ", 
+                     round(cea_alt_lst$incremental$inc_cst_pval, 4), "\n"))
+    writeLines(paste("P-value for effect coefficient = ", 
+                     round(cea_alt_lst$incremental$inc_eff_pval, 4), "\n"))
+  }
   writeLines(paste("\nICER ", cea_alt_lst$incremental$ci_level,
                    "% Confidence Interval (Fieller's Method)\n    ", "(",
                    round(cea_alt_lst$incremental$icer_ci_fieller[1], 2), ", ",

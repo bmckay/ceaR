@@ -23,6 +23,7 @@ ceamodel_incremental <- function(cea_lst = list(), cost_order = TRUE,
   }
   
   # Set cost_order preference in the ceamodel object
+  ### TODO may drop the class ceaicer line
   cea_lst$incremental <- list(cost_order = cost_order)
   class(cea_lst$incremental) <- "ceaicer"
 
