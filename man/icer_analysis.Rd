@@ -5,10 +5,12 @@
 \title{Statistical analysis on an ICER}
 \usage{
 icer_analysis(cea_lst = list(), intv1, intv2, fieller_plot = FALSE,
-  inb = FALSE, boot = FALSE, ci_level = 95)
+  pvalues = FALSE, inb = FALSE, boot = FALSE, ci_level = 95)
 }
 \arguments{
-\item{cea_lst}{A ceamodel class object created using a ceamodel_setup function.}
+\item{cea_lst}{A ceamodel class object created using a ceamodel_setup function.
+If a ceaicer object is not included (from ceamodel_incremental), this will
+be run first before an analysis of the ICER.}
 
 \item{intv1}{Reference to one of the conditions specified in the intervention
 variable of cea_lst}

@@ -3,6 +3,7 @@
 \docType{data}
 \name{clintrial_cea}
 \alias{clintrial_cea}
+\alias{clintrial_cea}
 \title{Example CEA clinical trial data}
 \format{A data frame with 500 rows and 9 variables:
 \describe{
@@ -21,6 +22,8 @@
 }
 \usage{
 clintrial_cea
+
+clintrial_cea
 }
 \description{
 A dataset that includes cost, QALYs, and six explanatory variables that
@@ -29,5 +32,14 @@ generalized linear models and can also be used for other example CEAs. This
 dataset is provided by the Health Services Research Unit and used in the text
 "Economic Evaluation in Clinical Trials" by Glick HA, Doshi JA, Sonnad SS,
 and Polsky D. Oxford University Press, 2007.
+
+A dataset that includes costs and life-years gained at the intervnetion level
+(i.e. not individual level data) that can be used to conduct simple CEAs.
+This dataset is provided in the text
+"Applied Methods of Cost-effectiveness Analysis" by Gray, Clarke, 
+Wolstenholme, and Wordsowrth. Oxford University Press, 2011. The data is
+based on the study Gyrd-Hansen, D. (1997). "Is it cost effective to introduce
+screening programmes for colorectal cancer? Illustrating the principles
+of optimal resource allocation. Health Policy, 41, 189-199.
 }
 \keyword{datasets}
