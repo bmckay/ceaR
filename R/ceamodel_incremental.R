@@ -68,7 +68,7 @@ ceamodel_incremental <- function(cea_lst = list(), cost_order = TRUE,
   # Create unique intervention names
   intv_names <- paste(cea_lst$intv_char, cea_lst$incremental$intv_vec, sep="")
   
-  # Construct an icer table based on the results of the regression analysis
+  # Construct an ICER table based on the results of the regression analysis
   cea_lst$icer.table = create_icer_table(cst_vec, eff_vec, intv_names,
                                          cea_lst$eff_more_better,
                                          cea_lst$incremental$cost_order,
