@@ -29,9 +29,11 @@ ceamodel_incremental <- function(cea_lst = list(), cost_order = TRUE,
 
   # Create intervention related variables for regression analyses
   # Create vector and determine length of unique values in intervention variable
+  #browser()
   cea_lst$incremental$intv_vec <-
     sort(unique(cea_lst$cea_data[, cea_lst$intv_char]))
   cea_lst$incremental$N_intv_vec <- length(cea_lst$incremental$intv_vec)
+
   # Create a unique binary variable for each value in intervention variable
   cea_lst$incremental$intv_vec_char <- c()
   for (i in 2:cea_lst$incremental$N_intv_vec) {

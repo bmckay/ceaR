@@ -13,11 +13,14 @@
 #' @return An object of class XXX
 #'
 #' @export
-inb <- function(ceamodel=list(), intv1=NA, intv2=NA, n_lam=101, lam_upper=NA) {
+inb <- function(ceamodel = list(), intv1 = NA, intv2 = NA, 
+                n_lam = 101, lam_upper = NA) {
 
   if (is.null(ceamodel$incremental$intv1) |
       is.null(ceamodel$incremental$intv2)) {
     if (is.na(intv1) | is.na(intv2)) {
+      # What if instead of stopping, the assumption is that a full nb is desired
+      # using boots
       stop(paste("The object supplied for ceamodel does not have an incremental
                  analysis or a specific set of interventions to compare."))
     } else {
@@ -143,4 +146,29 @@ inb <- function(ceamodel=list(), intv1=NA, intv2=NA, n_lam=101, lam_upper=NA) {
   # create_ceac_plot(inc_inb)
 
   return(ceamodel)
+}
+
+inb_boot <- function(ceamodel = list(), n_lam = 101, lam_upper = NA) {
+  
+  
+  z_val <- get_zval(ceamodel$incremental$ci_level)
+  # b = inc_eff * lambda - inc_cst
+  # V(b) = (lambda^2)*V(inc_eff) + V(inc_cst) - 2*lambda*C(inc_eff, inc_cst)
+  # confidence limits are b +/- 1_96*sqrt(V(b))
+  # lambda are x points then would have a b_lam, b_lam_upper, b_lam_lower lines
+  if (is.na(lam_upper)) {
+    lam_upper <- 5 * max(ceamodel$incremental$icer.table[, "ICER"], 
+                         na.rm = TRUE)
+  }
+
+  lam_seq <- seq(from=0, to=lam_upper, length.out=n_lam)
+  
+  # Bootstrap
+  
+  
+  # Loop over lam_seq
+  
+  
+  # NB regression
+  
 }

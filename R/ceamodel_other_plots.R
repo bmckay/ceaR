@@ -72,13 +72,13 @@ create_ceac_plot <- function(inb_lst = list(),
                              y_lab = "Probability of Cost-Effectiveness",
                              file_name = "create_ceac_plot.jpg") {
 
-  ggplot(data=inb_lst$inb_data, aes(x=b_lam, y=b_lam_prob)) +
+  ggplot2::ggplot(data=inb_lst$inb_data, aes(x=b_lam, y=b_lam_prob)) +
     theme(panel.background = element_rect(fill=NA)) +
     labs(title=title_lab, x=x_lab, y=y_lab) +
     geom_line() +
     ylim(0, 1.0) +
     geom_hline(yintercept=0) +
     geom_vline(xintercept=0)
-  ggsave(file_name, plot=last_plot(), device="jpeg")
+  ggplot2::ggsave(file_name, plot=last_plot(), device="jpeg")
 
 }

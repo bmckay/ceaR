@@ -64,12 +64,13 @@ cea_setup.default <- function(cst, eff, intv,
   #   were passed to covt_cst or covt_eff
 
   n_covt <- NCOL(covt)
-  if (!is.null(covt)) {
-    if (is.null(n_covt)) n_covt = 1
+  #if (n_covt == 0) covt = NULL
+  if (n_covt > 0) {
+    #if (is.null(n_covt)) n_covt <- 1
     if (n_covt == 1) covt <- data.frame(covt)
-    covt_cst_data <- covt[, covt_cst]
+    covt_cst_data <- dplyr::select(covt, covt_cst)
     covt_cst_char <- covt_char[covt_cst]
-    covt_eff_data <- covt[, covt_eff]
+    covt_eff_data <- dplyr::select(covt, covt_eff)
     covt_eff_char <- covt_char[covt_eff]
     if (is.null(covt_char)) {
       covt_char <- rep("", n_covt)
@@ -88,6 +89,9 @@ cea_setup.default <- function(cst, eff, intv,
   n_covt_cst <- length(covt_cst)
   n_covt_eff <- length(covt_eff)
 
+  if (!exists("covt_cst_char")) covt_cst_char <- NULL
+  if (!exists("covt_eff_char")) covt_eff_char <- NULL
+  
   # create the first instance of the ceamodel class object
   # the *_char objects are names of each of the objects
   cea = list(cst_char        = cst_char,

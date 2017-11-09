@@ -38,25 +38,29 @@ boot_nb <- function(cea_lst, n_boot = 100) {
     rm(cea_data_tmp)
 
     #cea_boot = sureg(cea_data_boot)
-    ceamodel_tmp <- cea_setup.formula(cea_lst$cst_formula, cea_lst$eff_formula,
+    ceamodel_tmp <- cea_setup(cea_lst$cst_formula, cea_lst$eff_formula,
                                       cea_data_boot,
                                       eff_more_better = cea_lst$eff_more_better)
     ceamodel_tmp <- ceamodel_incremental(ceamodel_tmp, table_print = FALSE)
 
-    cst_vec <- ceamodel_tmp$incremental$sureg$const_cst +
-      c(0, ceamodel_tmp$incremental$sureg$inc_cst_vec) +
-      sum(ceamodel_tmp$incremental$sureg$avg_covt_cst_vec*
-            ceamodel_tmp$incremental$sureg$coef[((2*ceamodel_tmp$incremental$N_intv_vec)+
-                                                   ceamodel_tmp$incremental$sureg$n_covt_eff+1):
-                                             length(ceamodel_tmp$incremental$sureg$coef)])
+    # cst_vec <- ceamodel_tmp$incremental$sureg$const_cst +
+    #   c(0, ceamodel_tmp$incremental$sureg$inc_cst_vec) +
+    #   sum(ceamodel_tmp$incremental$sureg$avg_covt_cst_vec*
+    #         ceamodel_tmp$incremental$sureg$coef[((2*ceamodel_tmp$incremental$N_intv_vec)+
+    #                                                ceamodel_tmp$incremental$sureg$n_covt_eff+1):
+    #                                          length(ceamodel_tmp$incremental$sureg$coef)])
+    # 
+    # eff_vec <- ceamodel_tmp$incremental$sureg$const_eff +
+    #   c(0, ceamodel_tmp$incremental$sureg$inc_eff_vec) +
+    #   sum(ceamodel_tmp$incremental$sureg$avg_covt_eff_vec*
+    #         ceamodel_tmp$incremental$sureg$coef[(ceamodel_tmp$incremental$N_intv_vec+1):
+    #                                          (ceamodel_tmp$incremental$N_intv_vec+
+    #                                             ceamodel_tmp$incremental$sureg$n_covt_eff)])
 
-    eff_vec <- ceamodel_tmp$incremental$sureg$const_eff +
-      c(0, ceamodel_tmp$incremental$sureg$inc_eff_vec) +
-      sum(ceamodel_tmp$incremental$sureg$avg_covt_eff_vec*
-            ceamodel_tmp$incremental$sureg$coef[(ceamodel_tmp$incremental$N_intv_vec+1):
-                                             (ceamodel_tmp$incremental$N_intv_vec+
-                                                ceamodel_tmp$incremental$sureg$n_covt_eff)])
-
+    cst_vec <- ceamodel_tmp$icer.table[order(row.names(ceamodel_tmp$icer.table)), 
+                                       "Cost"]
+    eff_vec <- ceamodel_tmp$icer.table[order(row.names(ceamodel_tmp$icer.table)), 
+                                       "Effect"]
     cea_boot <- rbind(cea_boot, c(cst_vec, eff_vec))
 
   }
