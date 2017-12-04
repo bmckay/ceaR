@@ -45,12 +45,14 @@ cea_setup <- function(x, ...) UseMethod("cea_setup")
 #'                  representing the preferred name of the covariate
 #'                  variables. The number of strings provided should equal
 #'                  the number of columns in covt.
+#' @param call.txt Only supplied when one of the cea_setup methods calls this
+#'                 default function.
 #' @describeIn cea_setup Default S3 method
 #' @export
 cea_setup.default <- function(cst, eff, intv,
                               covt = c(), covt_cst = c(), covt_eff = c(),
                               eff_more_better = TRUE, cst_char, eff_char,
-                              intv_char, covt_char) {
+                              intv_char, covt_char, call.txt) {
 
   # if names are not provided for the cst, eff, and intv variables/vectors,
   #   names are automatically applied
@@ -63,7 +65,12 @@ cea_setup.default <- function(cst, eff, intv,
   #   for both costs and effects, regardless of whether or not vectors
   #   were passed to covt_cst or covt_eff
 
-  n_covt <- NCOL(covt)
+  if (is.null(ncol(covt))) {
+    n_covt <- 0
+  }
+  else {
+    n_covt <- ncol(covt)
+  }
   #if (n_covt == 0) covt = NULL
   if (n_covt > 0) {
     #if (is.null(n_covt)) n_covt <- 1
@@ -144,7 +151,17 @@ cea_setup.default <- function(cst, eff, intv,
   cea$N_total <- nrow(cea$cea_data)
 
   # the ceamodel class is finalized and returned
-  class(cea) <- "ceamodel"
+  if (is.null(call)) {
+    
+  } else {
+    cea$call <- call.txt
+  }
+  if (length(unique(cea$cea_data[, cea$intv_char])) == cea$N_total) {
+    class(cea) <- c("deterministic", "ceamodel")
+  } else {
+    class(cea) <- c("stochastic", "ceamodel")
+  }
+  
   return(cea)
 
 }
@@ -195,80 +212,104 @@ cea_setup.data.frame <- function(cea_data=list(), cst_char, eff_char, intv_char,
 
 #' @describeIn cea_setup S3 method for class 'formula'
 #' @export
-cea_setup.formula <- function(formula_cst=formula, formula_eff=formula,
-                              cea_data=list(), eff_more_better = TRUE) {
+cea_setup.formula <- function(formula_cea = formula, intv, cea_data = list(), 
+                              eff_more_better = TRUE) {
 
   # convert formulas to character vectors for parsing
-  formula_cst_char <- as.character(formula_cst)
-  formula_eff_char <- as.character(formula_eff)
-  if (formula_cst_char[1] != "~") {
+  formula_char <- as.character(formula_cea)
+  if (formula_char[1] != "~") {
     # this actually fails at the point of entering the formula
     stop(paste("Formula does not inlcude a ~ character distinguishing costs and
-               effects from intervention and covariate variables."))
+               effects from covariate variables."))
   }
-  if (formula_eff_char[1] != "~") {
-    # this actually fails at the point of entering the formula
-    stop(paste("Formula does not inlcude a ~ character distinguishing costs and
-               effects from intervention and covariate variables."))
+  if (length(formula_char) != 3) {
+    stop(paste("Formula provided does not contain three parts. Should be 
+               costs | effects ~ covariates (or 1 if no covariates)"))
+  }
+  
+  # the first part of the formula (costs | effects) shows up in the second 
+  # position of the vector
+  csteff_char <- strsplit(formula_char[2], "|", fixed = TRUE)
+  csteff_char <- trimws(csteff_char[[1]])
+  if (length(csteff_char) < 2) {
+    stop(paste("Formula does not provide a cost and effect variable separated
+               by | to the left of the tilde ~."))
+  } else if (length(csteff_char) > 2) {
+    stop(paste("Formula should only include a cost and effect variable
+               separated by | to the left of the tilde ~...nothing else"))
+  }
+  cst_char <- csteff_char[1]
+  eff_char <- csteff_char[2]
+
+  # the second part of the formula shows up in the third position of the vector
+  cov_char <- strsplit(formula_char[3], "|", fixed = TRUE)
+  cov_char <- trimws(cov_char[[1]])
+  if (length(cov_char) == 1) {
+    # in this situation there is either a "1" or a list of covariates that apply
+    # to both costs and effects
+    # check first for the no covariate situation
+    if (cov_char == "1") {
+      cst_cov_char <- NULL
+      eff_cov_char <- NULL
+    } else {
+      cov_char <- strsplit(cov_char, "+", fixed = TRUE)
+      cst_cov_char <- trimws(cov_char[[1]])
+      eff_cov_char <- cst_cov_char
+    }
+  }
+  else if (length(cov_char) == 2) {
+    # in ths situation there are separate covariates for costs and effects
+    # may have a 1 in one or both positions
+    # cost covariates first
+    if (cov_char[1] == "1") {
+      cst_cov_char <- NULL
+    }
+    else {
+      cst_cov_char <- strsplit(cov_char[1], "+", fixed = TRUE)
+      cst_cov_char <- trimws(cst_cov_char[[1]])
+    }
+    
+    # effect covariates next
+    if (cov_char[2] == "1") {
+      eff_cov_char <- NULL
+    }
+    else {
+      eff_cov_char <- strsplit(cov_char[2], "+", fixed = TRUE)
+      eff_cov_char <- trimws(eff_cov_char[[1]])
+    }
   }
 
-  # the first part of the formula shows up in the second position of the vector
-  # cst_char <- stringi::stri_trim_both(formula_cst_char[2])
-  # eff_char <- stringi::stri_trim_both(formula_eff_char[2])
-  cst_char <- trimws(formula_cst_char[2])
-  eff_char <- trimws(formula_eff_char[2])
-  # check for the correspondence in intervention variables between equations
-  #   and check for covariates
-  cst_char_vec <- strsplit(formula_cst_char[3], "+", fixed=TRUE)
-  tmp_cst <- as.character(cst_char_vec[[1]])
-  #int_cst_char <- stringi::stri_trim_both(cst_char_vec[[1]][1])
-  # int_cst_char <- stringi::stri_trim_both(tmp_cst[1])
-  int_cst_char <- trimws(tmp_cst[1])
-  if (length(cst_char_vec[[1]]) > 1) {
-    #cov_cst_vec <- stringi::stri_trim_both(cst_char_vec[[1]][2:length(cst_char_vec[[1]])])
-    # cov_cst_vec <- stringi::stri_trim_both(tmp_cst[2:length(cst_char_vec[[1]])])
-    cov_cst_vec <- trimws(tmp_cst[2:length(cst_char_vec[[1]])])
-  } else {
-    cov_cst_vec <- c()
+  covt_char_vec <- unique(c(cst_cov_char, eff_cov_char))
+  if (is.null(covt_char_vec)) {
+    covt <- NULL
   }
-
-  # find covariates
-  eff_char_vec <- strsplit(formula_eff_char[3], "+", fixed=TRUE)
-  tmp_eff <- as.character(eff_char_vec[[1]])
-  #int_eff_char <- stringi::stri_trim_both(eff_char_vec[[1]][1])
-  # int_eff_char <- stringi::stri_trim_both(tmp_eff[1])
-  int_eff_char <- trimws(tmp_eff[1])
-  if (length(eff_char_vec[[1]]) > 1) {
-    #cov_eff_vec <- stringi::stri_trim_both(eff_char_vec[[1]][2:length(eff_char_vec[[1]])])
-    # cov_eff_vec <- stringi::stri_trim_both(tmp_eff[2:length(eff_char_vec[[1]])])
-    cov_eff_vec <- trimws(tmp_eff[2:length(eff_char_vec[[1]])])
-  } else {
-    cov_eff_vec <- c()
+  else {
+    covt <- cea_data[, covt_char_vec]
   }
-
-  if (int_cst_char != int_eff_char) {
-    stop(paste("Cost and effect formulas have different
-               intervention variables."))
-  } else {
-    int_char <- int_cst_char
+  
+  # Now deal with the intervention variable passed for argument "intv"
+  if (length(intv) > 1){
+    stop(paste("Please pass only a single variable representing intervention or
+               group assignment of observations."))
   }
+  int_char <- trimws(intv)
 
-  covt_char_vec <- unique(c(cov_eff_vec, cov_cst_vec))
   var_char_vec <- c(cst_char, eff_char, int_char, covt_char_vec)
 
   # call default function to create ceamodel class object
   ceamodel_local <- cea_setup.default(cst             = cea_data[, cst_char],
                                       eff             = cea_data[, eff_char],
                                       intv            = cea_data[, int_char],
-                                      covt            = cea_data[, covt_char_vec],
+                                      covt            = covt,
                                       covt_cst        = which(covt_char_vec ==
-                                                                cov_cst_vec),
+                                                                cst_cov_char),
                                       covt_eff        = which(covt_char_vec ==
-                                                                cov_eff_vec),
+                                                                eff_cov_char),
                                       eff_more_better = eff_more_better,
                                       cst_char        = cst_char,
                                       eff_char        = eff_char,
                                       intv_char       = int_char,
-                                      covt_char       = covt_char_vec)
+                                      covt_char       = covt_char_vec,
+                                      call.txt        = match.call())
 }
 
