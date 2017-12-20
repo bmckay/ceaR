@@ -32,7 +32,9 @@ be used where the baseline costs (blcost) and QALYs (blqaly) will be covariates
 with cost and qaly, respectively.
 
 ```{r}
-testmodel <- cea_setup(cost ~ treat + blcost, qaly ~ treat + blqaly, clintrial_cea)
+library(ceaR)
+testmodel <- cea_setup(cost | qaly ~ blcost | blqaly, intv = "treat", 
+                       clintrial_cea)
 ```
 
 The object testmodel is of class ceamodel and includes a data frame including

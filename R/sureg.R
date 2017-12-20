@@ -19,7 +19,7 @@ sureg = function(mf_lst=list(), intv1=NA, intv2=NA) {
   X_mat <- rbind(cbind(Z_mat, matrix(0, nrow=nrow(Z_mat), ncol=ncol(W_mat))), cbind(matrix(0, nrow=nrow(W_mat), ncol=ncol(Z_mat)), W_mat))
 
   y_vec <- c(mf_lst$cea_data[, mf_lst$eff_char], mf_lst$cea_data[, mf_lst$cst_char])
-
+browser()
   qx <- qr(X_mat)
   coef <- solve.qr(qx, y_vec)
   coef_alt <- solve(t(X_mat)%*%X_mat)%*%t(X_mat)%*%y_vec
@@ -53,6 +53,25 @@ sureg = function(mf_lst=list(), intv1=NA, intv2=NA) {
 
   coef_gls <- solve(t(X_mat)%*%kronecker(solve(sigma_mat),diag(mf_lst$N_total))%*%X_mat)%*%t(X_mat)%*%kronecker(solve(sigma_mat),diag(mf_lst$N_total))%*%y_vec
 
+  # At this point, the model is solved, now to create a return list similar to glm
+  # To match structure of glm, list elements should be the following
+  #   coefficients: vector with names (N.coeff)
+  #   residuals: vector (N=)
+  #   fitted.values: vector (N=)
+  #   effects: vector (N=)
+  #   R: matrix (N.coeffxN.coeff)
+  #   rank: single number
+  #   call, formula, terms
+  # Change everything to create an sureg object that is saved in cea
+  sureg <- list()
+  sureg$coefficients <- coef
+  names(sureg$coefficients) <- c(mf_lst$incremental$intv_vec_char, 
+                                 "(Intercept)", 
+                                 mf_lst$incremental$covt_eff_char,
+                                 mf_lst$incremental$intv_vec_char, 
+                                 "(Intercept)", 
+                                 mf_lst$incremental$covt_cst_char)
+  
   # coef vector is ordered as effects first and costs second
   # within effects and costs, the intervention 0/1 come first followed by the constant term, and then the covariates
   # N.int.vec is the costant term for effects
@@ -86,9 +105,18 @@ sureg = function(mf_lst=list(), intv1=NA, intv2=NA) {
   const_cst <- coef[2*mf_lst$incremental$N_intv_vec+n_covt_eff]
 
   const_eff <- coef[mf_lst$incremental$N_intv_vec]
+  
+  rank <- c(mf_lst$incremental$N_intv_vec + n_covt_cst + 1,
+            mf_lst$incremental$N_intv_vec + n_covt_eff + 1)
+  
+  df.residual <- c((length(y_vec) / 2) -
+    (mf_lst$incremental$N_intv_vec + n_covt_cst + 1),
+    (length(y_vec) / 2) - 
+    (mf_lst$incremental$N_intv_vec + n_covt_eff + 1))
 
   # TODO Create this as an sureg model object and consider additional
   #    regression diagnostics to include in the returned object
+  # Should make this comparable to what comes from a glm
   reg_lst <- list(coef              = coef,
                   coef_gls          = coef_gls,
                   var_eff           = var_eff,
@@ -105,6 +133,9 @@ sureg = function(mf_lst=list(), intv1=NA, intv2=NA) {
                   inc_cst_vec       = inc_cst_vec,
                   inc_eff_vec       = inc_eff_vec,
                   const_cst         = const_cst,
-                  const_eff         = const_eff)
+                  const_eff         = const_eff,
+                  rank              = rank,
+                  df.residual       = df.residual)
 
 }
+

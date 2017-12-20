@@ -80,9 +80,10 @@ create_icer_table <- function(cst_vec, eff_vec, intv_names,
     }
   }
 
+  class(icer_table_mat) <- "icertable"
+
   if (table_print) {
     print(icer_table_mat)
-    print("Dominance: 1=intervention/option strongly dominated, 2=intervention/option weakly dominated")
   }
 
   #print(icer_table_mat)

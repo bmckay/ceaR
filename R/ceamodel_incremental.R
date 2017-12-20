@@ -36,7 +36,6 @@ ceamodel_incremental <- function(cea_lst = list(), cost_order = TRUE,
   } else if ("stochastic" %in% class(cea_lst)) {
     # Create intervention related variables for regression analyses
     # Create vector and determine length of unique values in intervention variable
-    #browser()
     cea_lst$incremental$intv_vec <-
       sort(unique(cea_lst$cea_data[, cea_lst$intv_char]))
     cea_lst$incremental$N_intv_vec <- length(cea_lst$incremental$intv_vec)
@@ -51,10 +50,26 @@ ceamodel_incremental <- function(cea_lst = list(), cost_order = TRUE,
         c(cea_lst$incremental$intv_vec_char, paste("int", i-1, sep=""))
     }
     
+    # Need to run a cost regression and an effect regression, save both
+    # then run sureg, if appropriate, to get the covariance in incremental
+    # costs and effects
+    # Need to create appropriate regression formulas using new binary variables
+    
+    
+    # Cost regression first
+    browser()
+    cea_lst$cst_reg <- glm(cea_lst$cst_formula, family = cea_lst$reg.types[1], 
+                           data = cea_lst$cea_data)
+    
+    cea_lst$eff_reg <- glm(cea_lst$eff_formula, family = cea_lst$reg.types[2], 
+                           data = cea_lst$cea_data)
+    
     # Based on model specified in cea_lst (ceamodel object) and using newly
     #   created binary intervention variables, construct and run a seemingly
     #   unrelated regression model, the first step toward an incremental analysis
-    cea_lst$incremental$sureg <- sureg(cea_lst)
+    if (cea_lst$reg.types[1] == "gaussian" & 
+        cea_lst$reg.types[2] == "gaussian") cea_lst$incremental$sureg <- 
+          sureg(cea_lst)
     
     # Use the results of the regression analysis to determine average cost values
     #   by unique intervention variable value

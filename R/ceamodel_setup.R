@@ -12,17 +12,17 @@
 #' ceamodel <- cea_setup(clintrial_cea, "cost", "qaly", "treat")
 #' ceamodel <- cea_setup(clintrial_cea, "cost", "qaly", "treat", "male")
 #' 
-#' ## Formulas examples: basic, male as covariate
-#' ceamodel <- cea_setup(cost ~ treat, qaly ~ treat, clintrial_cea)
-#' ceamodel <- cea_setup(cost ~ treat + male, qaly ~ treat + male, 
-#'                       cea_data = clintrial_cea)
+#' ## Formula examples: basic, male as covariate
+#' ceamodel <- cea_setup(cost | qaly ~ 1, "treat", clintrial_cea)
+#' ceamodel <- cea_setup(cost | qaly ~ male, "treat", clintrial_cea)
 #' @export
 cea_setup <- function(x, ...) UseMethod("cea_setup")
 
 #' @param cst A vector of cost values.
 #' @param eff A vector of effect values.
 #' @param intv A vector of intervention or program assignment/membership.
-#'         cst, eff, and intv must have the same length, greater than one.
+#'         The vectors cst, eff, and intv must have the same length, greater 
+#'         than one.
 #' @param covt If provided, a vector (or matrix) of covariate values. covt must
 #'         have the same number of rows as cst and eff. The number of columns
 #'         is equal to the number of unique covariates.
@@ -47,12 +47,22 @@ cea_setup <- function(x, ...) UseMethod("cea_setup")
 #'                  the number of columns in covt.
 #' @param call.txt Only supplied when one of the cea_setup methods calls this
 #'                 default function.
+#' @param incremental Defaults to TRUE and runs incremental analysis upon setup. 
+#' @param cost_order If true, the order of options in an ICER table will be by 
+#' increasing average cost. If false, the order of options in an ICER table
+#' will be by increasing average effect.
+#' @param cst_type Defaults to linear regression (gaussian) but can be set
+#'                 to any family object available to glm.
+#' @param eff_type Defaults to linear regression (gaussian) but can be set
+#'                 to any family object available to glm.
 #' @describeIn cea_setup Default S3 method
 #' @export
 cea_setup.default <- function(cst, eff, intv,
                               covt = c(), covt_cst = c(), covt_eff = c(),
                               eff_more_better = TRUE, cst_char, eff_char,
-                              intv_char, covt_char, call.txt) {
+                              intv_char, covt_char, call.txt, 
+                              incremental = TRUE, cost_order = TRUE,
+                              cst_type = "gaussian", eff_type = "gaussian") {
 
   # if names are not provided for the cst, eff, and intv variables/vectors,
   #   names are automatically applied
@@ -152,7 +162,7 @@ cea_setup.default <- function(cst, eff, intv,
 
   # the ceamodel class is finalized and returned
   if (is.null(call)) {
-    
+    cea$call <- "Was NULL"
   } else {
     cea$call <- call.txt
   }
@@ -160,7 +170,11 @@ cea_setup.default <- function(cst, eff, intv,
     class(cea) <- c("deterministic", "ceamodel")
   } else {
     class(cea) <- c("stochastic", "ceamodel")
+    # cost regression (default now to linear regression)
+    cea$reg.types <- c(cst_type, eff_type)
   }
+  
+  cea = ceamodel_incremental(cea_lst = cea, cost_order = cost_order)
   
   return(cea)
 
@@ -170,7 +184,9 @@ cea_setup.default <- function(cst, eff, intv,
 #' @export
 cea_setup.data.frame <- function(cea_data=list(), cst_char, eff_char, intv_char,
                           covt_char_vec=c(), covt_cst=c(), covt_eff=c(),
-                          eff_more_better=TRUE) {
+                          eff_more_better=TRUE, incremental = TRUE, 
+                          cost_order = TRUE,
+                          cst_type = "gaussian", eff_type = "gaussian") {
 
   # If one or more cost covariates are provided, the names are saved and
   #   data passed to a vector/matirx from the dataframe
@@ -206,14 +222,20 @@ cea_setup.data.frame <- function(cea_data=list(), cst_char, eff_char, intv_char,
                                       cst_char        = cst_char,
                                       eff_char        = eff_char,
                                       intv_char       = intv_char,
-                                      covt_char       = covt_char_vec)
+                                      covt_char       = covt_char_vec,
+                                      incremental     = incremental,
+                                      cost_order      = cost_order,
+                                      cst_type        = cst_type,
+                                      eff_type        = eff_type)
 
 }
 
 #' @describeIn cea_setup S3 method for class 'formula'
 #' @export
 cea_setup.formula <- function(formula_cea = formula, intv, cea_data = list(), 
-                              eff_more_better = TRUE) {
+                              eff_more_better = TRUE, incremental = TRUE,
+                              cost_order = TRUE,
+                              cst_type = "gaussian", eff_type = "gaussian") {
 
   # convert formulas to character vectors for parsing
   formula_char <- as.character(formula_cea)
@@ -310,6 +332,15 @@ cea_setup.formula <- function(formula_cea = formula, intv, cea_data = list(),
                                       eff_char        = eff_char,
                                       intv_char       = int_char,
                                       covt_char       = covt_char_vec,
-                                      call.txt        = match.call())
+                                      call.txt        = match.call(),
+                                      incremental     = incremental,
+                                      cost_order      = cost_order,
+                                      cst_type        = cst_type,
+                                      eff_type        = eff_type)
 }
 
+create_formula <- function(dep, intv, covt) {
+  rtn <- as.formula(paste(paste(dep, "~", paste(intv, collapse = " + "), 
+                                sep = " "), covt, collapse = " + ", 
+                          sep = " + "))
+}
