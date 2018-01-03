@@ -1,10 +1,13 @@
+#' Print a scatterplot
+#' 
+#' @export
 create_scatter_plot <- function(cea_lst = ceamodel(),
                                 title_lab = "",
                                 x_lab = "Incremental Effects",
                                 y_lab = "Incremental Costs",
                                 file_name = "create_scatter_plot.jpg",
                                 incremental = TRUE) {
-browser()
+
 #  nintv <- ncol(boot_data) / 2
   if (incremental) {
 
@@ -59,44 +62,58 @@ browser()
   } else {
 
   }
-browser()
-  plot_loc <- ggplot(data = boot_data)
+
+  plot_loc <- ggplot2::ggplot(data = boot_data)
 }
 
+#' Print an ICER plot
+#' 
+#' @export
 create_icer_plot <- function(slopes_vec, intercept_vec, xlim_vec=c(),
                              ylim_vec=c(), icer_marker=c(), title_lab="",
                              x_lab="Incremental Effects",
                              y_lab="Incremental Costs",
+                             save.plot = FALSE,
                              file_name="create_icer_plot.jpg",
                              shade_df=NA) {
 
-  plot_loc <- ggplot(data = data.frame(x=c(icer_marker[1]),
-                                       y=c(icer_marker[2])),
-                     aes(x, y)) +
-    theme(panel.background = element_rect(fill = NA))
+  plot_loc <- ggplot2::ggplot(data = data.frame(x=c(icer_marker[1]),
+                                                y=c(icer_marker[2])),
+                              mapping = ggplot2::aes(x, y)) +
+    ggplot2::theme(panel.background = ggplot2::element_rect(fill = NA))
 
   if (is.data.frame(shade_df)) plot_loc <- plot_loc +
-      geom_polygon(data=shade_df, mapping=aes(x=x, y=y, group=t), fill="grey80")
+    ggplot2::geom_polygon(data = shade_df, 
+                          mapping = ggplot2::aes(x=x, y=y, group=t), 
+                          fill="grey80")
 
-  plot_loc <- plot_loc + geom_point() +
-    labs(title=title_lab, x=x_lab, y=y_lab) +
-    geom_abline(slope=slopes_vec[1], intercept=intercept_vec[1], size=0.1) +
-    geom_abline(slope=slopes_vec[2], intercept=intercept_vec[2], size=0.1) +
-    geom_hline(yintercept=0) +
-    geom_vline(xintercept=0) +
-    xlim(xlim_vec[1], xlim_vec[2]) +
-    ylim(ylim_vec[1], ylim_vec[2])
+  plot_loc <- plot_loc + ggplot2::geom_point() +
+    ggplot2::labs(title=title_lab, x=x_lab, y=y_lab) +
+    ggplot2::geom_abline(slope=slopes_vec[1], intercept=intercept_vec[1], size=0.1) +
+    ggplot2::geom_abline(slope=slopes_vec[2], intercept=intercept_vec[2], size=0.1) +
+    ggplot2::geom_hline(yintercept=0) +
+    ggplot2::geom_vline(xintercept=0) +
+    ggplot2::xlim(xlim_vec[1], xlim_vec[2]) +
+    ggplot2::ylim(ylim_vec[1], ylim_vec[2])
 
-  ggsave(file_name, plot=last_plot(), device="jpeg")
+  if (save.plot) ggplot2::ggsave(file_name, plot = plot_loc, device="jpeg")
+  return(plot_loc)
 }
 
+#' Print a Fieller confidence interval plot
+#' 
+#' @export
 fieller_ci_plot <- function(x, ...) UseMethod("fieller_ci_plot")
 
+#' Print a Fieller confidence interval plot, default method
+#' 
+#' @export
 fieller_ci_plot.default = function(icer_ci_fieller_vec, inc_cst, inc_eff,
                                    title_lab="Bow Tie ICER Confidence Region
                                    (Fieller's theorem)",
                                    x_lab="Incremental Effects",
                                    y_lab="Incremental Costs",
+                                   save.plot = FALSE,
                                    file_name="create_fieller_ci_plot.jpg") {
 
   x_max <- 2*inc_eff
@@ -119,18 +136,40 @@ fieller_ci_plot.default = function(icer_ci_fieller_vec, inc_cst, inc_eff,
                    xlim_vec=xlim_vec, ylim_vec=ylim_vec,
                    icer_marker=c(inc_eff, inc_cst),
                    title_lab=title_lab, x_lab=x_lab,
-                   y_lab=y_lab, file_name=file_name, shade_df=shade)
+                   y_lab=y_lab, save.plot = save.plot, file_name=file_name, 
+                   shade_df=shade)
 }
 
+#' Print a Fieller confidence interval plot, class ceamodel method
+#' 
+#' @export
 fieller_ci_plot.ceamodel = function(cea_lst,
                                     title_lab="Bow Tie ICER Confidence Region
                                                (Fieller's theorem)",
                                     x_lab="Incremental Effects",
                                     y_lab="Incremental Costs",
+                                    save.plot = FALSE,
                                     file_name="create_fieller_ci_plot.jpg") {
 
   fieller_ci_plot.default(cea_lst$incremental$icer_ci_fieller,
                           cea_lst$incremental$inc_cst,
                           cea_lst$incremental$inc_eff,
-                          title_lab, x_lab, y_lab, file_name)
+                          title_lab, x_lab, y_lab, save.plot, file_name)
+}
+
+#' Print a Fieller confidence interval plot, class icermodel method
+#' 
+#' @export
+fieller_ci_plot.icermodel = function(icer_lst,
+                                     title_lab="Bow Tie ICER Confidence Region
+                                     (Fieller's theorem)",
+                                     x_lab="Incremental Effects",
+                                     y_lab="Incremental Costs",
+                                     save.plot = FALSE,
+                                     file_name="create_fieller_ci_plot.jpg") {
+
+  fieller_ci_plot.default(icer_lst$icer_ci,
+                          icer_lst$icer_coef["Inc. Costs", "Estimate"],
+                          icer_lst$icer_coef["Inc. Effects", "Estimate"],
+                          title_lab, x_lab, y_lab, save.plot, file_name)
 }

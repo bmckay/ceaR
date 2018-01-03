@@ -5,7 +5,8 @@
 \title{Statistical analysis on an ICER}
 \usage{
 icer_analysis(cea_lst = list(), intv1, intv2, fieller_plot = FALSE,
-  pvalues = FALSE, inb = FALSE, boot = FALSE, ci_level = 95)
+  pvalues = FALSE, inb = FALSE, boot = FALSE, ci_level = 95,
+  return_sureg = FALSE)
 }
 \arguments{
 \item{cea_lst}{A ceamodel class object created using a ceamodel_setup function.

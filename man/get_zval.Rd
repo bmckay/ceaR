@@ -8,7 +8,7 @@ get_zval(ci_level = 95)
 }
 \arguments{
 \item{ci_level}{Level of confidence. The default value is 95, representing
-a 95% level of confidence or an alpha of 0.05.}
+a 95 percent level of confidence or an alpha of 0.05.}
 }
 \value{
 Z-value for the standard normal distribution

@@ -12,14 +12,25 @@ sureg = function(mf_lst=list(), intv1=NA, intv2=NA) {
   # Put together matrices for the seemingly unrelated regression analysis
   # X matrix is combination of intervention variable, constants, and covariates for costs and effects
   # To solve when there are more than one intervention variable, need to set this up as multiple binary variables in the ceamodel_frame function
-  Z_mat <- cbind(mf_lst$cea_data[, mf_lst$incremental$intv_vec_char], rep(1, mf_lst$N_total), mf_lst$cea_data[, mf_lst$covt_eff_char])
+  Z_mat <- cbind(rep(1, mf_lst$N_total), mf_lst$cea_data[, mf_lst$incremental$intv_vec_char], mf_lst$cea_data[, mf_lst$covt_eff_char])
   Z_mat <- matrix(as.numeric(unlist(Z_mat)), nrow=nrow(Z_mat))
-  W_mat <- cbind(mf_lst$cea_data[,mf_lst$incremental$intv_vec_char], rep(1, mf_lst$N_total), mf_lst$cea_data[, mf_lst$covt_cst_char])
+  W_mat <- cbind(rep(1, mf_lst$N_total), mf_lst$cea_data[, mf_lst$incremental$intv_vec_char], mf_lst$cea_data[, mf_lst$covt_cst_char])
   W_mat <- matrix(as.numeric(unlist(W_mat)), nrow=nrow(W_mat))
   X_mat <- rbind(cbind(Z_mat, matrix(0, nrow=nrow(Z_mat), ncol=ncol(W_mat))), cbind(matrix(0, nrow=nrow(W_mat), ncol=ncol(Z_mat)), W_mat))
 
   y_vec <- c(mf_lst$cea_data[, mf_lst$eff_char], mf_lst$cea_data[, mf_lst$cst_char])
-browser()
+
+  # glmfit <- glm.fit(X_mat, y_vec)
+  # glmfit$call <- "glm.fit(X_mat, y_vec)"
+  # glmfit$method <- "glm.fit"
+  # class(glmfit) <- c(glmfit$class, c("glm", "lm"))
+  # names(glmfit$coefficients) <- c("Eff: (Intercept)", 
+  #                                 mf_lst$incremental$intv_vec_char, 
+  #                                 mf_lst$covt_eff_char, "Cst: (Intercept)", 
+  #                                 mf_lst$incremental$intv_vec_char, 
+  #                                 mf_lst$covt_cst_char)
+  # glmfit
+
   qx <- qr(X_mat)
   coef <- solve.qr(qx, y_vec)
   coef_alt <- solve(t(X_mat)%*%X_mat)%*%t(X_mat)%*%y_vec
@@ -43,14 +54,14 @@ browser()
   var_inc_cst_vec <- rep(NA, mf_lst$incremental$N_intv_vec-1)
   covt_inc_ce_vec <- rep(NA, mf_lst$incremental$N_intv_vec-1)
   for (i in 1:(mf_lst$incremental$N_intv_vec-1)) {
-    var_inc_eff_vec[i] <- var_coef_mat[i,i]
-    var_inc_cst_vec[i] <- var_coef_mat[mf_lst$incremental$N_intv_vec+n_covt_eff+i, mf_lst$incremental$N_intv_vec+n_covt_eff+i]
-    covt_inc_ce_vec[i] <- var_coef_mat[i, mf_lst$incremental$N_intv_vec+n_covt_eff+i]
+    var_inc_eff_vec[i] <- var_coef_mat[i+1,i+1]
+    var_inc_cst_vec[i] <- var_coef_mat[mf_lst$incremental$N_intv_vec+n_covt_eff+i+1, mf_lst$incremental$N_intv_vec+n_covt_eff+i+1]
+    covt_inc_ce_vec[i] <- var_coef_mat[i+1, mf_lst$incremental$N_intv_vec+n_covt_eff+i+1]
   }
   mf_lst$incremental$var_inc_eff_vec <- var_inc_eff_vec
   mf_lst$incremental$var_inc_cst_vec <- var_inc_cst_vec
   mf_lst$incremental$covt_inc_ce_vec <- covt_inc_ce_vec
-
+  
   coef_gls <- solve(t(X_mat)%*%kronecker(solve(sigma_mat),diag(mf_lst$N_total))%*%X_mat)%*%t(X_mat)%*%kronecker(solve(sigma_mat),diag(mf_lst$N_total))%*%y_vec
 
   # At this point, the model is solved, now to create a return list similar to glm
@@ -65,13 +76,13 @@ browser()
   # Change everything to create an sureg object that is saved in cea
   sureg <- list()
   sureg$coefficients <- coef
-  names(sureg$coefficients) <- c(mf_lst$incremental$intv_vec_char, 
-                                 "(Intercept)", 
+  names(sureg$coefficients) <- c(mf_lst$incremental$intv_vec_char,
+                                 "(Intercept)",
                                  mf_lst$incremental$covt_eff_char,
-                                 mf_lst$incremental$intv_vec_char, 
-                                 "(Intercept)", 
+                                 mf_lst$incremental$intv_vec_char,
+                                 "(Intercept)",
                                  mf_lst$incremental$covt_cst_char)
-  
+
   # coef vector is ordered as effects first and costs second
   # within effects and costs, the intervention 0/1 come first followed by the constant term, and then the covariates
   # N.int.vec is the costant term for effects
@@ -105,13 +116,13 @@ browser()
   const_cst <- coef[2*mf_lst$incremental$N_intv_vec+n_covt_eff]
 
   const_eff <- coef[mf_lst$incremental$N_intv_vec]
-  
+
   rank <- c(mf_lst$incremental$N_intv_vec + n_covt_cst + 1,
             mf_lst$incremental$N_intv_vec + n_covt_eff + 1)
-  
+
   df.residual <- c((length(y_vec) / 2) -
     (mf_lst$incremental$N_intv_vec + n_covt_cst + 1),
-    (length(y_vec) / 2) - 
+    (length(y_vec) / 2) -
     (mf_lst$incremental$N_intv_vec + n_covt_eff + 1))
 
   # TODO Create this as an sureg model object and consider additional
@@ -137,5 +148,6 @@ browser()
                   rank              = rank,
                   df.residual       = df.residual)
 
+  return(reg_lst)
 }
 

@@ -40,4 +40,4 @@
 #'   \item{cost}{total cost, in pounds}
 #'   \item{qaly}{life-years gained}
 #' }
-"clintrial_cea"
+"colocancer_cea"

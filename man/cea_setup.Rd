@@ -11,14 +11,17 @@ cea_setup(x, ...)
 
 \method{cea_setup}{default}(cst, eff, intv, covt = c(), covt_cst = c(),
   covt_eff = c(), eff_more_better = TRUE, cst_char, eff_char, intv_char,
-  covt_char)
+  covt_char, call.txt, incremental = TRUE, cost_order = TRUE,
+  cst_type = "gaussian", eff_type = "gaussian")
 
 \method{cea_setup}{data.frame}(cea_data = list(), cst_char, eff_char,
   intv_char, covt_char_vec = c(), covt_cst = c(), covt_eff = c(),
-  eff_more_better = TRUE)
+  eff_more_better = TRUE, incremental = TRUE, cost_order = TRUE,
+  cst_type = "gaussian", eff_type = "gaussian")
 
-\method{cea_setup}{formula}(formula_cst = formula, formula_eff = formula,
-  cea_data = list(), eff_more_better = TRUE)
+\method{cea_setup}{formula}(formula_cea = formula, intv, cea_data = list(),
+  eff_more_better = TRUE, incremental = TRUE, cost_order = TRUE,
+  cst_type = "gaussian", eff_type = "gaussian")
 }
 \arguments{
 \item{x}{an R object.}
@@ -28,7 +31,8 @@ cea_setup(x, ...)
 \item{eff}{A vector of effect values.}
 
 \item{intv}{A vector of intervention or program assignment/membership.
-cst, eff, and intv must have the same length, greater than one.}
+The vectors cst, eff, and intv must have the same length, greater 
+than one.}
 
 \item{covt}{If provided, a vector (or matrix) of covariate values. covt must
 have the same number of rows as cst and eff. The number of columns
@@ -59,6 +63,21 @@ intervention variable (values in intv).}
 representing the preferred name of the covariate
 variables. The number of strings provided should equal
 the number of columns in covt.}
+
+\item{call.txt}{Only supplied when one of the cea_setup methods calls this
+default function.}
+
+\item{incremental}{Defaults to TRUE and runs incremental analysis upon setup.}
+
+\item{cost_order}{If true, the order of options in an ICER table will be by 
+increasing average cost. If false, the order of options in an ICER table
+will be by increasing average effect.}
+
+\item{cst_type}{Defaults to linear regression (gaussian) but can be set
+to any family object available to glm.}
+
+\item{eff_type}{Defaults to linear regression (gaussian) but can be set
+to any family object available to glm.}
 }
 \value{
 An object of class "ceamodel".
@@ -79,12 +98,12 @@ estimating incremental costs and effects.
 }}
 
 \examples{
-## Data Frame examples: basic, male as covariate
+## Data Frame examples: basic, male as covariate for effects only
 ceamodel <- cea_setup(clintrial_cea, "cost", "qaly", "treat")
-ceamodel <- cea_setup(clintrial_cea, "cost", "qaly", "treat", "male")
+ceamodel <- cea_setup(clintrial_cea, "cost", "qaly", "treat", 
+covt_eff = "male")
 
-## Formulas examples: basic, male as covariate
-ceamodel <- cea_setup(cost ~ treat, qaly ~ treat, clintrial_cea)
-ceamodel <- cea_setup(cost ~ treat + male, qaly ~ treat + male, 
-                      cea_data = clintrial_cea)
+## Formula examples: basic, male as covariate for effects only
+ceamodel <- cea_setup(cost | qaly ~ 1, "treat", clintrial_cea)
+ceamodel <- cea_setup(cost | qaly ~ 1 | male, "treat", clintrial_cea)
 }

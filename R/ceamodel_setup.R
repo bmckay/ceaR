@@ -8,13 +8,14 @@
 #' @param x an R object.
 #' @return An object of class "ceamodel".
 #' @examples 
-#' ## Data Frame examples: basic, male as covariate
+#' ## Data Frame examples: basic, male as covariate for effects only
 #' ceamodel <- cea_setup(clintrial_cea, "cost", "qaly", "treat")
-#' ceamodel <- cea_setup(clintrial_cea, "cost", "qaly", "treat", "male")
+#' ceamodel <- cea_setup(clintrial_cea, "cost", "qaly", "treat", 
+#' covt_eff = "male")
 #' 
-#' ## Formula examples: basic, male as covariate
+#' ## Formula examples: basic, male as covariate for effects only
 #' ceamodel <- cea_setup(cost | qaly ~ 1, "treat", clintrial_cea)
-#' ceamodel <- cea_setup(cost | qaly ~ male, "treat", clintrial_cea)
+#' ceamodel <- cea_setup(cost | qaly ~ 1 | male, "treat", clintrial_cea)
 #' @export
 cea_setup <- function(x, ...) UseMethod("cea_setup")
 
@@ -69,17 +70,21 @@ cea_setup.default <- function(cst, eff, intv,
   if (missing(cst_char)) cst_char <- "costs"
   if (missing(eff_char)) eff_char <- "effects"
   if (missing(intv_char)) intv_char <- "intervention"
+  #if (missing(covt_char)) covt_char <- rep()
 
   # check for a vector supplied to covt
   # if a vector is supplied, it automattically is applied as the covariates
   #   for both costs and effects, regardless of whether or not vectors
   #   were passed to covt_cst or covt_eff
 
-  if (is.null(ncol(covt))) {
+  if (is.null(covt)) {
+    n_covt <- 0
+  }
+  else if (is.null(NCOL(covt))) {
     n_covt <- 0
   }
   else {
-    n_covt <- ncol(covt)
+    n_covt <- NCOL(covt)
   }
   #if (n_covt == 0) covt = NULL
   if (n_covt > 0) {
@@ -214,9 +219,9 @@ cea_setup.data.frame <- function(cea_data=list(), cst_char, eff_char, intv_char,
                                       eff             = cea_data[, eff_char],
                                       intv            = cea_data[, intv_char],
                                       covt            = cea_data[, covt_char_vec],
-                                      covt_cst        = which(covt_char_vec ==
+                                      covt_cst        = which(covt_char_vec %in%
                                                                 covt_cst_char),
-                                      covt_eff        = which(covt_char_vec ==
+                                      covt_eff        = which(covt_char_vec %in%
                                                                 covt_eff_char),
                                       eff_more_better = eff_more_better,
                                       cst_char        = cst_char,
@@ -323,9 +328,9 @@ cea_setup.formula <- function(formula_cea = formula, intv, cea_data = list(),
                                       eff             = cea_data[, eff_char],
                                       intv            = cea_data[, int_char],
                                       covt            = covt,
-                                      covt_cst        = which(covt_char_vec ==
+                                      covt_cst        = which(covt_char_vec %in%
                                                                 cst_cov_char),
-                                      covt_eff        = which(covt_char_vec ==
+                                      covt_eff        = which(covt_char_vec %in%
                                                                 eff_cov_char),
                                       eff_more_better = eff_more_better,
                                       cst_char        = cst_char,
@@ -339,8 +344,3 @@ cea_setup.formula <- function(formula_cea = formula, intv, cea_data = list(),
                                       eff_type        = eff_type)
 }
 
-create_formula <- function(dep, intv, covt) {
-  rtn <- as.formula(paste(paste(dep, "~", paste(intv, collapse = " + "), 
-                                sep = " "), covt, collapse = " + ", 
-                          sep = " + "))
-}

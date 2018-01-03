@@ -28,6 +28,9 @@ advanced incremental analyses.
 }
 \examples{
 ## Run an incremental analysis
-ceamodel <- cea_setup(cost ~ treat, qaly ~ treat, clintrial_cea)
+ceamodel <- cea_setup(cost ~ treat, qaly ~ treat, clintrial_cea, 
+incremental = FALSE)
 ceamodel <- ceamodel_incremental(ceamodel)
+## Or as one step
+ceamodel <- cea_setup(cost ~ treat, qaly ~ treat, clintrial_cea)
 }
