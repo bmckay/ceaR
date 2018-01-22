@@ -22,6 +22,6 @@ This dataset is provided in the text
 Wolstenholme, and Wordsowrth. Oxford University Press, 2011. The data is
 based on the study Gyrd-Hansen, D. (1997). "Is it cost effective to introduce
 screening programmes for colorectal cancer? Illustrating the principles
-of optimal resource allocation. Health Policy, 41, 189-199.
+of optimal resource allocation." Health Policy, 41, 189-199.
 }
 \keyword{datasets}

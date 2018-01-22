@@ -86,7 +86,7 @@ An object of class "ceamodel".
 Creates a ceamodel class object that specifies cost and
 effect data as well as intervention specifiers for a list of individual 
 entities. The model may also specify covariate values to be used in 
-estimating incremental costs and effects.
+estimating incremental costs and/or effects.
 }
 \section{Methods (by class)}{
 \itemize{

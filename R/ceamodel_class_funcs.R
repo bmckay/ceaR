@@ -90,15 +90,21 @@ plot.ceamodel <- function(x, save.plot = FALSE, ...) {
   x.df$cst <- x.df$cst - base_cst
   x.df$dom[is.na(x.df$dom)] <- 0
   x.df$eff_path <- ifelse(x.df$dom == 0, x.df$eff, NA)
+  x.df$eff_path <- sort(x.df$eff_path, na.last = TRUE)
   x.df$cst_path <- ifelse(x.df$dom == 0, x.df$cst, NA)
+  x.df$cst_path <- sort(x.df$cst_path, na.last = TRUE)
   x.df$dom_txt <- ifelse(x.df$dom == 0, "Not Dominated",
                          ifelse(x.df$dom == 1, "Strictly Dominated",
                                 "Weakly Dominated"))
+
+  # nudge_x seems to be based on the scale of x
+  # so will set as .05 of max of x
+  nudge_x <- 0.05 * max(x.df$eff, na.rm = TRUE)
   
   plot_loc <- ggplot2::ggplot(data = x.df, mapping = ggplot2::aes(x = eff, y = cst)) +
     ggplot2::theme(panel.background = ggplot2::element_rect(fill = NA)) +
     ggplot2::geom_point(ggplot2::aes(color = factor(dom_txt))) +
-    ggplot2::geom_text(ggplot2::aes(label = int), nudge_x = 0, size = 3) +
+    ggplot2::geom_text(ggplot2::aes(label = int), nudge_x = nudge_x, size = 3) +
     ggplot2::labs(title = "Default Plot for Object of Class \"ceamodel\"", 
                   x = "Incremental Effects", y = "Incremental Costs") +
     ggplot2::geom_hline(yintercept = 0) +

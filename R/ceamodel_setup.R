@@ -3,7 +3,7 @@
 #' Creates a ceamodel class object that specifies cost and
 #' effect data as well as intervention specifiers for a list of individual 
 #' entities. The model may also specify covariate values to be used in 
-#' estimating incremental costs and effects.
+#' estimating incremental costs and/or effects.
 #' 
 #' @param x an R object.
 #' @return An object of class "ceamodel".
@@ -187,7 +187,8 @@ cea_setup.default <- function(cst, eff, intv,
 
 #' @describeIn cea_setup S3 method for class 'data.frame'
 #' @export
-cea_setup.data.frame <- function(cea_data=list(), cst_char, eff_char, intv_char,
+cea_setup.data.frame <- function(cea_data = list(), cst_char, eff_char, 
+                          intv_char,
                           covt_char_vec=c(), covt_cst=c(), covt_eff=c(),
                           eff_more_better=TRUE, incremental = TRUE, 
                           cost_order = TRUE,
@@ -344,3 +345,35 @@ cea_setup.formula <- function(formula_cea = formula, intv, cea_data = list(),
                                       eff_type        = eff_type)
 }
 
+#' @export
+cea_setup_deterministic <- function(cea_data = list(), cst_char, eff_char, 
+                                    intv_char, cst_stdev_char = c(), 
+                                    eff_stdev_char, corr_char = c(),
+                                    eff_more_better = TRUE, incremental = TRUE, 
+                                    cost_order = TRUE) {
+  
+  if(!tibble::has_name(cea_data, cst_char)) {
+    stop(paste("The variable name supplied to cst_char,", cst_char, ", does not
+               exist in dataframe provided to cea_data."))
+  }
+  if(!tibble::has_name(cea_data, eff_char)) {
+    stop(paste("The variable name supplied to eff_char,", eff_char, ", does not
+               exist in dataframe provided to cea_data."))
+  }
+  if(!tibble::has_name(cea_data, cst_char)) {
+    stop(paste("The variable name supplied to intv_char,", intv_char, ", does not
+               exist in dataframe provided to cea_data."))
+  }
+  if(!is.null(cst_stdev_char) & !tibble::has_name(cea_data, cst_stdev_char)) {
+    stop(paste("The variable name supplied to cst_stdev_char,", cst_stdev_char, 
+               ", does not exist in dataframe provided to cea_data."))
+  }
+  if(!is.null(eff_stdev_char) & !tibble::has_name(cea_data, eff_stdev_char)) {
+    stop(paste("The variable name supplied to eff_stdev_char,", eff_stdev_char, 
+               ", does not exist in dataframe provided to cea_data."))
+  }
+  if(!is.null(corr_char) & !tibble::has_name(cea_data, corr_char)) {
+    stop(paste("The variable name supplied to corr_char,", corr_char, 
+               ", does not exist in dataframe provided to cea_data."))
+  }
+}

@@ -1,18 +1,24 @@
 Package: ceaR
 Type: Package
 Title: Cost-Effectiveness Analysis Tools for R
-Version: 0.0.0.9000
+Version: 0.0.0.9001
 Author@R: person("Justin", "Ingels", email = "ingels@uga.edu",
   role=c("aut","cre"))
 Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Description: The ceaR package provides a set of tools that can be used
+    to define a cost-effectiveness model based on either mean cost and effect
+    data by intervention or alternative or patient-level data for two or more
+    interventions or alternatives. Functions exist to calculate incremental
+    cost-effectiveness ratios, confidence intervals, bootstrapping, net
+    benefit regression, and create a variety of common plots.
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
 Imports: 
     ggplot2 (>= 2.2),
-    tidyverse (>= 1.1)
+    tidyverse (>= 1.1),
+    boot,
+    stringr
 RoxygenNote: 6.0.1
 Suggests: 
     knitr,

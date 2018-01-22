@@ -11,7 +11,7 @@
 #' model
 #' @examples 
 #' ## Run an incremental analysis
-#' ceamodel <- cea_setup(cost ~ treat, qaly ~ treat, clintrial_cea, 
+#' ceamodel <- cea_setup(cost | qaly ~ 1, intv = "treat", clintrial_cea, 
 #' incremental = FALSE)
 #' ceamodel <- ceamodel_incremental(ceamodel)
 #' ## Or as one step
@@ -61,19 +61,21 @@ ceamodel_incremental <- function(cea_lst = list(), cost_order = TRUE,
     # Need to create appropriate regression formulas using new binary variables
     
     # Cost regression first
-    tmp_formula <- create_formula(cea_lst$cst_char, 
-                                  cea_lst$incremental$intv_vec_char, 
-                                  cea_lst$covt_cst_char)
-    cea_lst$cst_reg <- glm(tmp_formula, family = cea_lst$reg.types[1], 
+    cea_lst$incremental$cst_formula <- 
+      create_formula(cea_lst$cst_char, cea_lst$incremental$intv_vec_char, 
+                     cea_lst$covt_cst_char)
+    cea_lst$cst_reg <- glm(cea_lst$incremental$cst_formula, 
+                           family = cea_lst$reg.types[1], 
                            data = cea_lst$cea_data)
     tmp <- summary(cea_lst$cst_reg)
     cea_lst$cst_reg_coef <- tmp$coefficients
     
     # Effect regression next
-    tmp_formula <- create_formula(cea_lst$eff_char, 
-                                  cea_lst$incremental$intv_vec_char, 
-                                  cea_lst$covt_eff_char)
-    cea_lst$eff_reg <- glm(tmp_formula, family = cea_lst$reg.types[2], 
+    cea_lst$incremental$eff_formula <- 
+      create_formula(cea_lst$eff_char, cea_lst$incremental$intv_vec_char, 
+                     cea_lst$covt_eff_char)
+    cea_lst$eff_reg <- glm(cea_lst$incremental$eff_formula, 
+                           family = cea_lst$reg.types[2], 
                            data = cea_lst$cea_data)
     tmp <- summary(cea_lst$eff_reg)
     cea_lst$eff_reg_coef <- tmp$coefficients
@@ -161,3 +163,40 @@ ceamodel_incremental <- function(cea_lst = list(), cost_order = TRUE,
   return(cea_lst)
 }
 
+cea_estimates <- function(cea_lst) {
+  
+  # Use the results of the regression analysis to determine average cost values
+  #   by unique intervention variable value
+  if (length(cea_lst$covt_cst_char)>0) {
+    avg_covt_cst_vec <- rep(NA, length(cea_lst$covt_cst_char))
+    for (i in 1:length(cea_lst$covt_cst_char)) {
+      avg_covt_cst_vec[i] <- mean(cea_lst$cea_data[, cea_lst$covt_cst_char[i]])
+    }
+  }
+  else {
+    avg_covt_cst_vec <- c()
+  }
+  
+  if (length(cea_lst$covt_eff_char)>0) {
+    avg_covt_eff_vec <- rep(NA, length(cea_lst$covt_eff_char))
+    for (i in 1:length(cea_lst$covt_eff_char)) {
+      avg_covt_eff_vec[i] <- mean(cea_lst$cea_data[, cea_lst$covt_eff_char[i]])
+    }
+  }
+  else {
+    avg_covt_eff_vec <- c()
+  }
+  
+  cst_vec <- cea_lst$cst_reg$coefficients[1] +
+    c(0, cea_lst$cst_reg$coefficients[c(2:cea_lst$incremental$N_intv_vec)]) +
+    sum(avg_covt_cst_vec * 
+          cea_lst$cst_reg$coefficients[c((1 + cea_lst$incremental$N_intv_vec):
+                                           length(cea_lst$cst_reg$coefficients))])
+  
+  eff_vec <- cea_lst$eff_reg$coefficients[1] +
+    c(0, cea_lst$eff_reg$coefficients[c(2:cea_lst$incremental$N_intv_vec)]) +
+    sum(avg_covt_eff_vec * 
+          cea_lst$eff_reg$coefficients[c((1 + cea_lst$incremental$N_intv_vec):
+                                           length(cea_lst$eff_reg$coefficients))])
+  return(c(cst_vec, eff_vec))
+}

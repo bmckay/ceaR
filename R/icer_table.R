@@ -156,12 +156,19 @@ icer_table_weak = function(icer_table_mat) {
     return(0)
   }
 
-  for (i in (prev_row+1):nrow(icer_table_mat)) {
-    if (is.na(icer_table_mat[i, 6])) {
-      if (icer_table_mat[i, 5] < icer_table_mat[prev_row, 5]) {
-        return(prev_row)
+  # What is needed here is a loop over all non-dominated rows until a
+  # weakly dominated intervention is found or the end of the options
+  # is reached
+  for (j in prev_row:(nrow(icer_table_mat) - 1)) {
+    if (!is.na(icer_table_mat[j, 6])) next
+    for (i in (j + 1):nrow(icer_table_mat)) {
+      if (is.na(icer_table_mat[i, 6])) {
+        if (icer_table_mat[i, 5] < icer_table_mat[j, 5]) {
+          return(j)
+        }
       }
     }
   }
+  
   return(0)
 }
