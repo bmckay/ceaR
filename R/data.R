@@ -104,7 +104,7 @@
 #' outcome refers to the proportion of the sample that was abstinent at two
 #' different time points.
 #' 
-#' @format A dataframe with 6 observations and 6 variables:
+#' @format A dataframe with 6 observations and 8 variables:
 #' \describe{
 #'   \item{intervention}{intervention strategy including counselling intensity
 #'   and inclusion or not of NRT}
@@ -115,6 +115,8 @@
 #'   \item{cost_mean}{mean cost per participant}
 #'   \item{cost_sd}{standard deviation of the mean cost per participant}
 #'   \item{n}{number of participants}
+#'   \item{intensity}{indicator of intervention intensity}
+#'   \item{nrt}{indicator of NRT inclusion in intervention}
 #' }
 "quitline_cea"
 

@@ -56,6 +56,9 @@ cea_setup <- function(x, ...) UseMethod("cea_setup")
 #'                 to any family object available to glm.
 #' @param eff_type Defaults to linear regression (gaussian) but can be set
 #'                 to any family object available to glm.
+#' @param intv_cats A vector of data that classify the intervention options
+#' @param intv_cats_char One or more variables that classify the intervention
+#'                       options
 #' @describeIn cea_setup Default S3 method
 #' @export
 cea_setup.default <- function(cst, eff, intv,
@@ -63,8 +66,11 @@ cea_setup.default <- function(cst, eff, intv,
                               eff_more_better = TRUE, cst_char, eff_char,
                               intv_char, covt_char, call.txt, 
                               incremental = TRUE, cost_order = TRUE,
-                              cst_type = "gaussian", eff_type = "gaussian") {
+                              cst_type = "gaussian", eff_type = "gaussian",
+                              intv_cats, intv_cats_char = c()) {
 
+  #### TO DO: Check intv_cats_char to ensure these are actual variables in cea_data
+  
   # if names are not provided for the cst, eff, and intv variables/vectors,
   #   names are automatically applied
   if (missing(cst_char)) cst_char <- "costs"
@@ -119,6 +125,7 @@ cea_setup.default <- function(cst, eff, intv,
   cea = list(cst_char        = cst_char,
              eff_char        = eff_char,
              intv_char       = intv_char,
+             intv_cats_char  = intv_cats_char,
              covt_char       = covt_char,
              covt_cst_char   = covt_cst_char,
              covt_eff_char   = covt_eff_char,
@@ -154,10 +161,13 @@ cea_setup.default <- function(cst, eff, intv,
   } else {
     cea$cea_data <- data.frame(cst, eff, intv)
   }
+  if (!is.null(intv_cats_char)) {
+    cea$cea_data <- cbind(cea$cea_data, intv_cats)
+  }
 
   # the names in the *_char elements are applied to the dataframe
   names(cea$cea_data) <- c(cea$cst_char, cea$eff_char, cea$intv_char,
-                           cea$covt_char)
+                           cea$covt_char, cea$intv_cats_char)
 
   # all rows are dropped from the dataframe for which a missing value occurs
   cea$cea_data <- cea$cea_data[complete.cases(cea$cea_data), ]
@@ -192,7 +202,8 @@ cea_setup.data.frame <- function(cea_data = list(), cst_char, eff_char,
                           covt_char_vec=c(), covt_cst=c(), covt_eff=c(),
                           eff_more_better=TRUE, incremental = TRUE, 
                           cost_order = TRUE,
-                          cst_type = "gaussian", eff_type = "gaussian") {
+                          cst_type = "gaussian", eff_type = "gaussian",
+                          intv_cats, intv_cats_char = c()) {
 
   # If one or more cost covariates are provided, the names are saved and
   #   data passed to a vector/matirx from the dataframe
@@ -219,6 +230,7 @@ cea_setup.data.frame <- function(cea_data = list(), cst_char, eff_char,
   ceamodel_local <- cea_setup.default(cst             = cea_data[, cst_char],
                                       eff             = cea_data[, eff_char],
                                       intv            = cea_data[, intv_char],
+                                      intv_cats_char       = intv_cats_char,
                                       covt            = cea_data[, covt_char_vec],
                                       covt_cst        = which(covt_char_vec %in%
                                                                 covt_cst_char),
@@ -241,7 +253,8 @@ cea_setup.data.frame <- function(cea_data = list(), cst_char, eff_char,
 cea_setup.formula <- function(formula_cea = formula, intv, cea_data = list(), 
                               eff_more_better = TRUE, incremental = TRUE,
                               cost_order = TRUE,
-                              cst_type = "gaussian", eff_type = "gaussian") {
+                              cst_type = "gaussian", eff_type = "gaussian",
+                              intv_cats = c()) {
 
   # convert formulas to character vectors for parsing
   formula_char <- as.character(formula_cea)
@@ -286,7 +299,7 @@ cea_setup.formula <- function(formula_cea = formula, intv, cea_data = list(),
     }
   }
   else if (length(cov_char) == 2) {
-    # in ths situation there are separate covariates for costs and effects
+    # in this situation there are separate covariates for costs and effects
     # may have a 1 in one or both positions
     # cost covariates first
     if (cov_char[1] == "1") {
@@ -321,7 +334,7 @@ cea_setup.formula <- function(formula_cea = formula, intv, cea_data = list(),
                group assignment of observations."))
   }
   int_char <- trimws(intv)
-
+  
   var_char_vec <- c(cst_char, eff_char, int_char, covt_char_vec)
 
   # call default function to create ceamodel class object
@@ -342,7 +355,9 @@ cea_setup.formula <- function(formula_cea = formula, intv, cea_data = list(),
                                       incremental     = incremental,
                                       cost_order      = cost_order,
                                       cst_type        = cst_type,
-                                      eff_type        = eff_type)
+                                      eff_type        = eff_type,
+                                      intv_cats       = cea_data[, intv_cats],
+                                      intv_cats_char  = intv_cats)
 }
 
 #' @export

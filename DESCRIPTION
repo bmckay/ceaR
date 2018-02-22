@@ -18,7 +18,8 @@ Imports:
     ggplot2 (>= 2.2),
     tidyverse (>= 1.1),
     boot,
-    stringr
+    stringr,
+    Formula
 RoxygenNote: 6.0.1
 Suggests: 
     knitr,

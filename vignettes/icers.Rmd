@@ -1,5 +1,5 @@
 ---
-title: "ICERs"
+title: "Simple Deterministic Models"
 author: "Justin Ingels"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
@@ -9,4 +9,81 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-When comparing the costs and effects of alternative interventions, some op
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ceaR)
+```
+
+#### Introduction
+The ceaR package is designed to take datasets designed for cost-effectiveness analysis (CEA) and make the actual analysis easier leaving the analyst more time to explore the results and consider alternative specifications of the CEA model. In general, there are two approaches for CEAs of healthcare-related programs and interventions (herein referred to as alternatives). The first approach uses epidemiological data from randomized control trials or other types of studies and combines these results with cost data from secondary sources to create a decision analytic model. The second approach uses healthcare utilization data collected during a trial for individual patients and combines these with the effectiveness data for each individual. The dataset that arises from the latter approach is referred to as stochastic in the ceaR package and is typically formatted as an observation for each patient with variables that represent costs, effects, intervention or program assignment, and potentially demographic or other information about patients. This type of data allows an analyst to take full advantage of the ceaR package. However, it is also possible to provide data in a deterministic form where each observation in the dataset represents a unique intervention or program and the variables represent the average (or total) costs and effects of each alternative. Deterministic datasets are the focus of this ceaR package overview.
+
+The ceaR package includes several preloaded datasets for illustrative purposes. The list of datasets included in your version of the package can be found by using the following code.
+
+```{r datasets, eval = FALSE}
+data(package = "ceaR")
+```
+
+#### Example 1: No Dominance
+For the first example, the dataset *example1* will be used. Look at the data included in *example1*.
+
+```{r see_data1}
+print(example1)
+```
+
+The dataset includes three variables (Intervention, costs, and lys_gained) and three observations representing three generic interventions (A, B, and C). Assuming these are mutually exclusive alternatives, an incremental CEA is appropriate. The function *cea_setup( )* is the first step in creating a CEA model in the ceaR package. A CEA model simply means that the ceaR package needs to know what data to use and which variables represent costs, effects, and alternatives. In stochastic datasets, this may also include specifying covariate or control variables. A CEA model can be specified using the *cea_setup( )* function with a minimum of three parameters passed to the function.    
+
+1.  The first parameter (*formula_cea*) utilizes R's formula framework most commonly seen when specifying regression models. For regression models, this framework includes a dependent variable followed by a tilde ( ~ ) followed by a list of independent/explanatory variables (covariates or control variables) separated by a plus sign ( + ). That same basic framework is utilized in the ceaR package with the requirement that two variables be included to the left of the tilde separated by a vertical line ( | ). The variable to the left of the vertical line must be the cost variable and the variable to the right of the line must be the effect variable. For deterministic data, there are no covariates or controls and instead the number one (1) is placed to the right of the tilde.    
+2. The second parameter (*intv*) is a character string indicating a variable that specifies the alternatives included in the dataset. This is most important in stochastic datasets where a unique value is needed for each alternative so that patients in the dataset can be tied to one of the alternatives.    
+3. The third parameter (*cea_data*) indicates the dataset (provided as a dataframe) that includes the variables specified in the first two parameters and for a deterministic dataset, one observation for each alternative.
+
+The following code creates a CEA model for the *example1* dataset and assigns the results to the object *cea_example1*. Notice that by default when *cea_setup( )* is invoked, the ceaR package analyzes the data based on the model specified and provides the results in an incremental cost-effectiveness ratio (ICER) table, a process that will be referred to as a basic incremental analysis.
+
+```{r, setup1}
+cea_example1 <- cea_setup(costs | lys_gained ~ 1, intv = "Intervention", 
+                          cea_data = example1)
+```
+
+The results of this basic incremental analysis reveal there are no dominated alternatives (more details in later examples) and that the ICER for intervention A relative to intervention C is 2000 per unit of effect and the ICER for intervention B relative to intervention A is 40,000 per unit of effect. By default, the alternatives in an ICER table are arranged in order of increasing cost; the order of the alternatives in the dataset is unimportant.
+
+The ceaR package can also provide a plot of the alternatives on the cost-effectiveness plane using the following code.
+
+```{r, fig.width = 7, fig.height=4, warning=FALSE}
+plot(cea_example1)
+```
+
+The line segments included on the cost-effectiveness plane indicates the cost-effectiveness frontier and the slope of each line segment is equivalent to one of the ICER values included in the ICER table. By default, the first alternative in the ICER table is set to the origin (x=0, y=0) on the plane and the other alternatives are plotted relative to that alternative. Therefore, the location of A in the plot is at (250, 50 000) also the incremental costs and effects of A relative to C in the ICER table. However, B is not located at (300, 2 000 000) as those are the incremental costs and effects relative to A. Instead, B is located at (300, 2 500 000) as these are the incremental costs and effects of B relative to C. Calculating the slopes of the line segments from C to A and from A to B would lead to values of 2000 and 40,000, respectively as these are the ICER values for A and B. 
+
+#### Example 2: Dominated Alternatives
+The results of many CEA models include alternatives that are either strongly dominated or weakly dominated (often referred to as extended dominance) by one or more of the other alternatives. An example of each of these types of dominance can be seen using the *example2* dataset.
+
+```{r see_data2}
+print(example2)
+```
+
+This dataset is similar in design to *example1* with five rather than three generic interventions and variables representing costs and qalys for each intervention. The function *cea_setup()* will again be used to create and analyze a CEA model of this data.
+
+```{r, setup2}
+cea_example2 <- cea_setup(costs | qalys ~ 1, intv = "Intervention", 
+                          cea_data = example2)
+```
+
+The ICER table resulting from this model includes blanks for two observations in columns that would typically include incremental values. The reason for these omissions can be found in the far right column of the table that indicates dominance. A strongly dominated alternative occurs when another alternative is less costly and more effective. In this model, alternative C costs 3000 less than alternative D while providing 0.05 more units of effectiveness. Therefore, alternative D has been removed from the ICER calculation and a 1 placed in the far right column. Extended dominance occurs when the outcome of one alternative is dominated by a linear combination of two other alternatives. In this model, alternative C is dominated by a linear combination of alternatives B and E. For example, consider a new alternative that is 70% alternative B and 30% alternative E.
+
+```{r}
+# Average costs based on 70% of B and 30% of E
+(10000 * 0.7) + (40000 * 0.3)
+
+# Average effects based on 70% of B and 30% of E
+(0.4 * 0.7) + (1 * 0.3)
+```
+
+The resulting costs and effects are 19,000 and 0.58, which is less costly and more effective than alternative C. An alternative explanation for weak or extended dominance can be explained by including an incremental cost, effect, and ICER for alternative C in the ICER table. In this case, the values for alternative C relative to B would be 12,000, 0.15, and 80,000 while the values for alternative E relative to C would be 18,000, 0.45, and 40,000. In this case, a decision maker that is willing to spend an additional 80,000 per unit of effectiveness when deciding to select alternative C over B would automatically be willing to spend an additional 40,000 per unit of effectiveness when deciding to select alternative E over C.
+
+This model on the cost-effectiveness plane provides further indication of dominated options.
+
+```{r, fig.width = 7, fig.height=4, warning=FALSE}
+plot(cea_example2)
+```
+
+First, note that the ceaR package provides a different color for dominated alternatives. Second, the cost-effectiveness frontier does not include dominated alternatives. Third, there should never be any alternatives below or to the right of the cost-effectiveness frontier. In fact, an analyst could plot all options on the cost-effectiveness plane and create a line that connects those points farthest to the right while moving up the plot and determine dominated options in an equivalent manner. 
+

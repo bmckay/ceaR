@@ -12,16 +12,18 @@ cea_setup(x, ...)
 \method{cea_setup}{default}(cst, eff, intv, covt = c(), covt_cst = c(),
   covt_eff = c(), eff_more_better = TRUE, cst_char, eff_char, intv_char,
   covt_char, call.txt, incremental = TRUE, cost_order = TRUE,
-  cst_type = "gaussian", eff_type = "gaussian")
+  cst_type = "gaussian", eff_type = "gaussian", intv_cats,
+  intv_cats_char = c())
 
 \method{cea_setup}{data.frame}(cea_data = list(), cst_char, eff_char,
   intv_char, covt_char_vec = c(), covt_cst = c(), covt_eff = c(),
   eff_more_better = TRUE, incremental = TRUE, cost_order = TRUE,
-  cst_type = "gaussian", eff_type = "gaussian")
+  cst_type = "gaussian", eff_type = "gaussian", intv_cats,
+  intv_cats_char = c())
 
 \method{cea_setup}{formula}(formula_cea = formula, intv, cea_data = list(),
   eff_more_better = TRUE, incremental = TRUE, cost_order = TRUE,
-  cst_type = "gaussian", eff_type = "gaussian")
+  cst_type = "gaussian", eff_type = "gaussian", intv_cats = c())
 }
 \arguments{
 \item{x}{an R object.}
@@ -78,6 +80,11 @@ to any family object available to glm.}
 
 \item{eff_type}{Defaults to linear regression (gaussian) but can be set
 to any family object available to glm.}
+
+\item{intv_cats}{A vector of data that classify the intervention options}
+
+\item{intv_cats_char}{One or more variables that classify the intervention
+options}
 }
 \value{
 An object of class "ceamodel".

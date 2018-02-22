@@ -55,7 +55,7 @@ create_icer_table <- function(cst_vec, eff_vec, intv_names,
       icer_table_mat = icer_table_calc_incremental(icer_table_mat, eff_more_better)
     }
   }
-
+  
   # Iterate until weakly dominated options are removed
   while_cont = TRUE
   while (while_cont) {
@@ -98,6 +98,9 @@ icer_table_calc_incremental = function(icer_table_mat, eff_order) {
   # Begin by looking or the first non-dominated row
   while (prev_row==0) {
     if (is.na(icer_table_mat[i, 6])) {
+      icer_table_mat[i, 3] <- NA
+      icer_table_mat[i, 4] <- NA
+      icer_table_mat[i, 5] <- NA
       prev_row = i
     }
     else {
@@ -123,11 +126,14 @@ icer_table_calc_incremental = function(icer_table_mat, eff_order) {
 }
 
 icer_table_strong = function(icer_table_mat) {
-  #browser()
+
   for (i in 2:nrow(icer_table_mat)) {
-    if (is.na(icer_table_mat[i, 6])) {
-      if (icer_table_mat[i,4] < 0) {
+    if (is.na(icer_table_mat[i, 6] & !is.na(icer_table_mat[i, 4]))) {
+      if (icer_table_mat[i, 4] < 0) {
         return(i)
+      }
+      if (icer_table_mat[i, 3] == 0 & icer_table_mat[i, 4] > 0) {
+        return(i - 1)
       }
     }
   }
@@ -135,7 +141,7 @@ icer_table_strong = function(icer_table_mat) {
 }
 
 icer_table_weak = function(icer_table_mat) {
-
+  
   num_row = nrow(icer_table_mat)
   prev_row = 0
   i = 2
@@ -160,11 +166,14 @@ icer_table_weak = function(icer_table_mat) {
   # weakly dominated intervention is found or the end of the options
   # is reached
   for (j in prev_row:(nrow(icer_table_mat) - 1)) {
-    if (!is.na(icer_table_mat[j, 6])) next
+    if (!is.na(icer_table_mat[j, 6] & !is.na(icer_table_mat[j, 4]))) next
     for (i in (j + 1):nrow(icer_table_mat)) {
       if (is.na(icer_table_mat[i, 6])) {
         if (icer_table_mat[i, 5] < icer_table_mat[j, 5]) {
           return(j)
+        }
+        else {
+          break
         }
       }
     }

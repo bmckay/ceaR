@@ -77,39 +77,95 @@ print.icermodel <- function(x, ...) {
 #' @param x A ceamodel object
 #' @export
 plot.ceamodel <- function(x, save.plot = FALSE, ...) {
-  
+
   # for this really want to reorient all data to baseline intervention,
   # not necessarily what is in the icer table
   x.df <- data.frame(eff = x$icer.table[, "Effect"],
                      cst = x$icer.table[, "Cost"],
                      int = row.names(x$icer.table),
                      dom = x$icer.table[, "Dominance"])
+
+  x.df$int <- as.character(x.df$int)
   base_eff <- x.df$eff[1]
   base_cst <- x.df$cst[1]
   x.df$eff <- x.df$eff - base_eff
   x.df$cst <- x.df$cst - base_cst
   x.df$dom[is.na(x.df$dom)] <- 0
   x.df$eff_path <- ifelse(x.df$dom == 0, x.df$eff, NA)
-  x.df$eff_path <- sort(x.df$eff_path, na.last = TRUE)
   x.df$cst_path <- ifelse(x.df$dom == 0, x.df$cst, NA)
-  x.df$cst_path <- sort(x.df$cst_path, na.last = TRUE)
+  x.df <- dplyr::arrange(x.df, eff_path)
+  
   x.df$dom_txt <- ifelse(x.df$dom == 0, "Not Dominated",
                          ifelse(x.df$dom == 1, "Strictly Dominated",
                                 "Weakly Dominated"))
 
+  if (is.null(x$intv_cats_char)) {
+    x.df <- dplyr::inner_join(x.df, dplyr::select(x$cea_data, x$intv_char), 
+                              by = c("int" = x$intv_char))
+  }
+  else {
+    x.df <- dplyr::inner_join(x.df, dplyr::select(x$cea_data, x$intv_char, 
+                                           x$intv_cats_char), 
+                              by = c("int" = x$intv_char))
+  }
+
   # nudge_x seems to be based on the scale of x
   # so will set as .05 of max of x
   nudge_x <- 0.05 * max(x.df$eff, na.rm = TRUE)
-  
-  plot_loc <- ggplot2::ggplot(data = x.df, mapping = ggplot2::aes(x = eff, y = cst)) +
-    ggplot2::theme(panel.background = ggplot2::element_rect(fill = NA)) +
-    ggplot2::geom_point(ggplot2::aes(color = factor(dom_txt))) +
-    ggplot2::geom_text(ggplot2::aes(label = int), nudge_x = nudge_x, size = 3) +
-    ggplot2::labs(title = "Default Plot for Object of Class \"ceamodel\"", 
-                  x = "Incremental Effects", y = "Incremental Costs") +
+
+  plot_loc <- ggplot2::ggplot(data = x.df, 
+                              mapping = ggplot2::aes(x = eff, y = cst)) +
+    ggplot2::theme(panel.background = ggplot2::element_rect(fill = NA))
+  if (is.null(x$intv_cats)) {
+    plot_loc <- plot_loc + 
+      ggplot2::geom_point() +
+      ggplot2::geom_text(ggplot2::aes(label = int), nudge_x = nudge_x, 
+                         size = 3) +
+      ggplot2::labs(title = "Default Plot for Object of Class \"ceamodel\"", 
+                    x = "Incremental Effects", y = "Incremental Costs")
+  } else {
+    if (length(x$intv_cats_char) == 1) {
+      plot_loc <- plot_loc +
+        ggplot2::geom_point(ggplot2::aes(color = 
+                                           factor(x.df[, x$intv_cats_char[1]])
+        ),
+        size = 3) +
+        ggplot2::labs(title = "Default Plot for Object of Class \"ceamodel\"", 
+                      x = "Incremental Effects", y = "Incremental Costs",
+                      color = x$intv_cats_char[1])
+    }
+    else if (length(x$intv_cats_char) == 2) {
+      plot_loc <- plot_loc +
+        ggplot2::geom_point(ggplot2::aes(color = 
+                                           factor(x.df[, x$intv_cats_char[1]]),
+                                         shape = 
+                                           factor(x.df[, x$intv_cats_char[2]],)
+        ),
+        size = 3) +
+        ggplot2::labs(title = "Default Plot for Object of Class \"ceamodel\"", 
+                      x = "Incremental Effects", y = "Incremental Costs",
+                      color = x$intv_cats_char[1],
+                      shape = x$intv_cats_char[2])
+    } else {
+      plot_loc <- plot_loc +
+        ggplot2::geom_point(ggplot2::aes(color = 
+                                           factor(x.df[, x$intv_cats_char[1]]),
+                                         shape = 
+                                           factor(x.df[, x$intv_cats_char[2]]),
+                                         size = 
+                                           factor(x.df[, x$intv_cats_char[3]])
+        )) +
+        ggplot2::labs(title = "Default Plot for Object of Class \"ceamodel\"", 
+                      x = "Incremental Effects", y = "Incremental Costs",
+                      color = x$intv_cats_char[1],
+                      shape = x$intv_cats_char[2],
+                      size = x$intv_cats_char[3])
+    }
+  }
+  plot_loc <- plot_loc +
     ggplot2::geom_hline(yintercept = 0) +
     ggplot2::geom_vline(xintercept = 0) +
-    ggplot2::geom_path(ggplot2::aes(x = eff_path, y = cst_path))
+    ggplot2::geom_path(ggplot2::aes(x = eff_path, y = cst_path), na.rm = TRUE)
     #guide_legend("Option Dominance") +
   if (save.plot)  {
     ggplot2::ggsave("plot.ceamodel.jpg", plot = plot_loc, 
